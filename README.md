@@ -70,8 +70,8 @@ A full-featured clinic appointment booking backend that supports:
 │                    Express.js API                       │
 │  Helmet │ CORS │ Rate Limit │ Auth │ Validate │ Log     │
 ├──────────┬────────────────────────────────────────────  │
-│  Routes  │  Controllers  │  Services  │  Middleware     │
-└──────────┴───────┬───────────────────┴─────────────────┘
+│  Routes  │  Controllers  │  Services │  Middleware      │
+└──────────┴───────┬───────┴───────────┴──────────────────┘
                    │
        ┌───────────┼───────────┐
        ▼           ▼           ▼
@@ -163,7 +163,7 @@ A full-featured clinic appointment booking backend that supports:
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd clinic-booking-api
+cd clinic-booking
 
 # Install dependencies
 npm install

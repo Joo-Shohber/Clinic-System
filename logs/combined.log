@@ -1,0 +1,19 @@
+{"level":30,"time":1778527370313,"pid":15996,"hostname":"sonic","attempt":1,"msg":"Connecting to MongoDB..."}
+{"level":30,"time":1778527370356,"pid":15996,"hostname":"sonic","msg":"MongoDB connected"}
+{"level":30,"time":1778527370712,"pid":15996,"hostname":"sonic","msg":"Redis connected"}
+{"level":30,"time":1778527371364,"pid":15996,"hostname":"sonic","msg":"Redis ready"}
+{"level":30,"time":1778527371370,"pid":15996,"hostname":"sonic","msg":"WebSocket server initialized"}
+{"level":30,"time":1778527371372,"pid":15996,"hostname":"sonic","msg":"Expiration worker started"}
+{"level":30,"time":1778527371372,"pid":15996,"hostname":"sonic","msg":"Notification worker started"}
+{"level":30,"time":1778527371377,"pid":15996,"hostname":"sonic","msg":"Server running on port 3000"}
+{"level":30,"time":1778527371377,"pid":15996,"hostname":"sonic","msg":"Environment: development"}
+{"level":30,"time":1778527810736,"pid":19544,"hostname":"sonic","attempt":1,"msg":"Connecting to MongoDB..."}
+{"level":30,"time":1778527810780,"pid":19544,"hostname":"sonic","msg":"MongoDB connected"}
+{"level":30,"time":1778527811382,"pid":19544,"hostname":"sonic","msg":"Redis connected"}
+{"level":30,"time":1778527811863,"pid":19544,"hostname":"sonic","msg":"Redis ready"}
+{"level":30,"time":1778527811871,"pid":19544,"hostname":"sonic","msg":"WebSocket server initialized"}
+{"level":30,"time":1778527811873,"pid":19544,"hostname":"sonic","msg":"Expiration worker started"}
+{"level":30,"time":1778527811873,"pid":19544,"hostname":"sonic","msg":"Notification worker started"}
+{"level":30,"time":1778527811877,"pid":19544,"hostname":"sonic","msg":"Server running on port 3000"}
+{"level":30,"time":1778527811877,"pid":19544,"hostname":"sonic","msg":"Environment: development"}
+{"level":30,"time":1778527815078,"pid":19544,"hostname":"sonic","msg":"SIGINT received — shutting down gracefully"}
