@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic Booking API — Docs</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a24;
+      --border: #2a2a38;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --green: #00d4aa;
+      --yellow: #ffd166;
+      --red: #ff6b6b;
+      --blue: #4ecdc4;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 100;
+      padding-bottom: 40px;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .sidebar-logo span {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .sidebar-section {
+      padding: 16px 20px 8px;
+    }
+
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .sidebar-link:hover,
+    .sidebar-link.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .sidebar-link .method-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 3px;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .GET {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--green);
+    }
+
+    .POST {
+      background: rgba(108, 99, 255, 0.15);
+      color: var(--accent);
+    }
+
+    .PATCH {
+      background: rgba(255, 209, 102, 0.15);
+      color: var(--yellow);
+    }
+
+    .DELETE {
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--red);
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 280px;
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 960px;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .base-url {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--green);
+    }
+
+    .base-url .label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .section-prefix {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Endpoint card */
+    .endpoint {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .endpoint:hover {
+      border-color: var(--accent);
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .method {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 5px;
+      min-width: 54px;
+      text-align: center;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .endpoint-info {
+      flex: 1;
+    }
+
+    .endpoint-path {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .endpoint-path .param {
+      color: var(--yellow);
+    }
+
+    .endpoint-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .endpoint-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .tag-auth {
+      background: rgba(108, 99, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+    }
+
+    .tag-patient {
+      background: rgba(0, 212, 170, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+
+    .tag-doctor {
+      background: rgba(78, 205, 196, 0.1);
+      color: var(--blue);
+      border: 1px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .tag-admin {
+      background: rgba(255, 101, 132, 0.1);
+      color: var(--accent2);
+      border: 1px solid rgba(255, 101, 132, 0.3);
+    }
+
+    .tag-public {
+      background: rgba(255, 209, 102, 0.1);
+      color: var(--yellow);
+      border: 1px solid rgba(255, 209, 102, 0.3);
+    }
+
+    .tag-stripe {
+      background: rgba(99, 91, 255, 0.1);
+      color: #a78bfa;
+      border: 1px solid rgba(99, 91, 255, 0.3);
+    }
+
+    .tag-cookie {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--red);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .chevron {
+      color: var(--muted);
+      transition: transform 0.2s;
+      font-size: 12px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .endpoint.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .endpoint-body {
+      display: none;
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .endpoint.open .endpoint-body {
+      display: block;
+    }
+
+    /* Code blocks */
+    .code-section {
+      margin-top: 20px;
+    }
+
+    .code-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    .k {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* key */
+    .s {
+      color: var(--green);
+    }
+
+    /* string */
+    .n {
+      color: var(--yellow);
+    }
+
+    /* number/bool */
+    .c {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* comment */
+    .t {
+      color: var(--blue);
+    }
+
+    /* type */
+    .o {
+      color: var(--accent2);
+    }
+
+    /* optional marker */
+
+    /* Notes */
+    .note {
+      display: flex;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 16px;
+    }
+
+    .note-info {
+      background: rgba(108, 99, 255, 0.08);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      color: #a78bfa;
+    }
+
+    .note-warning {
+      margin-bottom: 20px;
+      background: rgba(255, 209, 102, 0.08);
+      border: 1px solid rgba(255, 209, 102, 0.2);
+      color: var(--yellow);
+    }
+
+    .note-danger {
+      background: rgba(255, 107, 107, 0.08);
+      border: 1px solid rgba(255, 107, 107, 0.2);
+      color: var(--red);
+    }
+
+    .note-success {
+      background: rgba(0, 212, 170, 0.08);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      color: var(--green);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-top: 16px;
+    }
+
+    .tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--surface2);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .tab-content {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Response status */
+    .responses {
+      margin-top: 16px;
+    }
+
+    .response-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+
+    .status-code {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 36px;
+    }
+
+    .status-2xx {
+      color: var(--green);
+    }
+
+    .status-4xx {
+      color: var(--red);
+    }
+
+    .status-5xx {
+      color: var(--accent2);
+    }
+
+    .response-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Overview cards */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .overview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .overview-card .num {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: var(--accent);
+      display: block;
+    }
+
+    .overview-card .label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Auth notes */
+    .auth-header-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--green);
+      margin-top: 8px;
+    }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 12px;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      position: relative;
+    }
+
+    .flow-step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 36px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .flow-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .flow-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+      padding-top: 5px;
+    }
+
+    .flow-text strong {
+      color: var(--accent);
+    }
+
+    .flow-text code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: var(--surface2);
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: var(--yellow);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 240px;
+      }
+
+      .main {
+        margin-left: 240px;
+        padding: 24px;
+      }
+
+      .overview-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Clinic Booking API</h1>
+      <span>v1.0 · REST · Base: /api/v1</span>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">System</div>
+      <a class="sidebar-link" href="#health"><span class="method-badge GET">GET</span>Health</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Auth</div>
+      <a class="sidebar-link" href="#auth-register"><span class="method-badge POST">POST</span>Register</a>
+      <a class="sidebar-link" href="#auth-verify"><span class="method-badge POST">POST</span>Verify Email</a>
+      <a class="sidebar-link" href="#auth-resend"><span class="method-badge POST">POST</span>Resend OTP</a>
+      <a class="sidebar-link" href="#auth-login"><span class="method-badge POST">POST</span>Login</a>
+      <a class="sidebar-link" href="#auth-google"><span class="method-badge GET">GET</span>Google OAuth</a>
+      <a class="sidebar-link" href="#auth-forgot"><span class="method-badge POST">POST</span>Forget Password</a>
+      <a class="sidebar-link" href="#auth-reset"><span class="method-badge POST">POST</span>Reset Password</a>
+      <a class="sidebar-link" href="#auth-refresh"><span class="method-badge GET">GET</span>Refresh Token</a>
+      <a class="sidebar-link" href="#auth-logout"><span class="method-badge GET">GET</span>Logout</a>
+      <a class="sidebar-link" href="#auth-photo"><span class="method-badge PATCH">PATCH</span>Change Photo</a>
+      <a class="sidebar-link" href="#auth-delete"><span class="method-badge DELETE">DELETE</span>Delete User</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Doctors</div>
+      <a class="sidebar-link" href="#doc-create"><span class="method-badge POST">POST</span>Create Profile</a>
+      <a class="sidebar-link" href="#doc-list"><span class="method-badge GET">GET</span>List Doctors</a>
+      <a class="sidebar-link" href="#doc-get"><span class="method-badge GET">GET</span>Get Doctor</a>
+      <a class="sidebar-link" href="#doc-update"><span class="method-badge PATCH">PATCH</span>Update Profile</a>
+      <a class="sidebar-link" href="#doc-verify"><span class="method-badge PATCH">PATCH</span>Verify Doctor</a>
+      <a class="sidebar-link" href="#doc-slots"><span class="method-badge GET">GET</span>Get Slots</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Schedules</div>
+      <a class="sidebar-link" href="#sch-create"><span class="method-badge POST">POST</span>Create Schedule</a>
+      <a class="sidebar-link" href="#sch-list"><span class="method-badge GET">GET</span>My Schedules</a>
+      <a class="sidebar-link" href="#sch-update"><span class="method-badge PATCH">PATCH</span>Update Schedule</a>
+      <a class="sidebar-link" href="#sch-delete"><span class="method-badge DELETE">DELETE</span>Delete Schedule</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Appointments</div>
+      <a class="sidebar-link" href="#apt-create"><span class="method-badge POST">POST</span>Book Appointment</a>
+      <a class="sidebar-link" href="#apt-me"><span class="method-badge GET">GET</span>My Appointments</a>
+      <a class="sidebar-link" href="#apt-all"><span class="method-badge GET">GET</span>All (Admin)</a>
+      <a class="sidebar-link" href="#apt-get"><span class="method-badge GET">GET</span>Get Appointment</a>
+      <a class="sidebar-link" href="#apt-cancel"><span class="method-badge PATCH">PATCH</span>Cancel</a>
+      <a class="sidebar-link" href="#apt-complete"><span class="method-badge PATCH">PATCH</span>Complete</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Payments</div>
+      <a class="sidebar-link" href="#pay-intent"><span class="method-badge POST">POST</span>Create Intent</a>
+      <a class="sidebar-link" href="#pay-webhook"><span class="method-badge POST">POST</span>Webhook</a>
+      <a class="sidebar-link" href="#pay-refund"><span class="method-badge POST">POST</span>Refund</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Reviews</div>
+      <a class="sidebar-link" href="#rev-create"><span class="method-badge POST">POST</span>Create Review</a>
+      <a class="sidebar-link" href="#rev-list"><span class="method-badge GET">GET</span>Doctor Reviews</a>
+      <a class="sidebar-link" href="#rev-update"><span class="method-badge PATCH">PATCH</span>Update Review</a>
+      <a class="sidebar-link" href="#rev-delete"><span class="method-badge DELETE">DELETE</span>Delete Review</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Admin</div>
+      <a class="sidebar-link" href="#adm-stats"><span class="method-badge GET">GET</span>Stats</a>
+      <a class="sidebar-link" href="#adm-users"><span class="method-badge GET">GET</span>All Users</a>
+      <a class="sidebar-link" href="#adm-pending"><span class="method-badge GET">GET</span>Pending Doctors</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h1>API Documentation</h1>
+      <p>Complete reference for the Clinic Appointment Booking System API. All endpoints, request bodies, responses, and
+        authentication requirements.</p>
+      <div class="base-url">
+        <span class="label">Base URL</span>
+        http://localhost:8000/api/v1
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="overview-grid">
+      <div class="overview-card">
+        <span class="num">32</span>
+        <div class="label">Total Endpoints</div>
+      </div>
+      <div class="overview-card">
+        <span class="num" style="color:var(--green)">JWT</span>
+        <div class="label">Auth Strategy</div>
+      </div>
+      <div class="overview-card">
+        <span class="num" style="color:var(--yellow)">EGP</span>
+        <div class="label">Payment Currency</div>
+      </div>
+    </div>
+
+    <div class="note note-info">
+      <span>ℹ️</span>
+      <div><strong>Authentication:</strong> All protected endpoints require <code
+          style="font-family:var(--mono);font-size:11px;background:rgba(108,99,255,0.1);padding:2px 6px;border-radius:3px;">Authorization: Bearer &lt;accessToken&gt;</code>
+        header. The <strong>accessToken</strong> is returned in the response body and should be stored in memory only
+        (not localStorage). The <strong>refreshToken</strong> is set as an HttpOnly cookie automatically.</div>
+    </div>
+
+    <div class="note note-warning" style="margin-top:12px;">
+      <span>⚠️</span>
+      <div><strong>Error Format:</strong> All errors follow <code
+          style="font-family:var(--mono);font-size:11px;background:rgba(255,209,102,0.1);padding:2px 6px;border-radius:3px;">{ "success": false, "error": { "code": "ERROR_CODE", "message": "...", "details": [...] } }</code>
+      </div>
+    </div>
+
+    <!-- ==================== HEALTH ==================== -->
+    <div class="section" id="health">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(0,212,170,0.1)">🩺</div>
+        <div>
+          <div class="section-title">System</div>
+          <div class="section-prefix">GET /health</div>
+        </div>
+      </div>
+
+      <div class="endpoint open" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/health</div>
+            <div class="endpoint-desc">Server status, database connection, and Redis connection health check</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"status"</span>:    <span class="s">"ok"</span>,
+    <span class="k">"database"</span>: <span class="s">"connected"</span>,          <span class="c">// disconnected | connecting | connected</span>
+    <span class="k">"redis"</span>:    <span class="s">"ready"</span>,              <span class="c">// ready | connecting | reconnecting</span>
+    <span class="k">"uptime"</span>:   <span class="n">3600.5</span>,               <span class="c">// seconds</span>
+    <span class="k">"timestamp"</span>: <span class="s">"2024-01-15T10:00:00.000Z"</span>
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== AUTH ==================== -->
+    <div class="section" id="auth-register">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(108,99,255,0.1)">🔐</div>
+        <div>
+          <div class="section-title">Authentication</div>
+          <div class="section-prefix">/api/v1/auth</div>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/register</div>
+            <div class="endpoint-desc">Register a new user. Sends OTP to email for verification. Optionally upload a
+              profile photo.</div>
+            <div class="endpoint-meta">
+              <span class="tag tag-public">Public</span>
+              <span class="tag tag-patient">multipart/form-data</span>
+            </div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body — multipart/form-data</div>
+            <pre>{
+  <span class="k">"name"</span>:     <span class="s">"Ahmed Ali"</span>,           <span class="c">// required, 2–100 chars</span>
+  <span class="k">"email"</span>:    <span class="s">"ahmed@example.com"</span>,   <span class="c">// required, unique</span>
+  <span class="k">"password"</span>: <span class="s">"Pass1234"</span>,            <span class="c">// required, min 8, needs uppercase + number</span>
+  <span class="k">"role"</span>:     <span class="s">"patient"</span>,             <span class="c">// optional: "patient" | "doctor" — default: "patient"</span>
+  <span class="k">"image"</span>:    <span class="t">&lt;file&gt;</span>                 <span class="c">// optional, image only, max 5MB</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>:    <span class="s">"Verification OTP sent to email"</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>EMAIL_TAKEN</strong> — Email already registered</span></div>
+              <div class="response-row"><span class="status-code status-4xx">422</span><span
+                  class="response-desc"><strong>VALIDATION_ERROR</strong> — Invalid fields with details array</span>
+              </div>
+            </div>
+          </div>
+          <div class="note note-info">
+            <span>💡</span>
+            <div>After register → call <strong>POST /auth/verify-email</strong> with the OTP from email to get your
+              access token.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verify Email -->
+      <div class="endpoint" id="auth-verify" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/verify-email</div>
+            <div class="endpoint-desc">Verify email with OTP. Returns access token and sets refresh token cookie.</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"email"</span>: <span class="s">"ahmed@example.com"</span>,
+  <span class="k">"otp"</span>:   <span class="s">"123456"</span>             <span class="c">// 6-digit code from email</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"accessToken"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9..."</span>,  <span class="c">// store in memory only</span>
+    <span class="k">"user"</span>: {
+      <span class="k">"id"</span>:    <span class="s">"64f1a2b3c4d5e6f7a8b9c0d1"</span>,
+      <span class="k">"name"</span>:  <span class="s">"Ahmed Ali"</span>,
+      <span class="k">"email"</span>: <span class="s">"ahmed@example.com"</span>,
+      <span class="k">"role"</span>:  <span class="s">"patient"</span>
+    }
+  }
+}
+<span class="c">// Cookie set: refreshToken (HttpOnly, path=/api/v1/auth)</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>OTP_EXPIRED</strong> — OTP expired or not found</span></div>
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>INVALID_OTP</strong> — Wrong OTP code</span></div>
+              <div class="response-row"><span class="status-code status-4xx">404</span><span
+                  class="response-desc"><strong>NOT_FOUND</strong> — User not found</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resend OTP -->
+      <div class="endpoint" id="auth-resend" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/resend-otp</div>
+            <div class="endpoint-desc">Resend email verification OTP. Only works if email is not yet verified.</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{ <span class="k">"email"</span>: <span class="s">"ahmed@example.com"</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"message"</span>: <span class="s">"OTP resent successfully"</span> } }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>ALREADY_VERIFIED</strong> — Email already verified</span></div>
+              <div class="response-row"><span class="status-code status-4xx">404</span><span
+                  class="response-desc"><strong>NOT_FOUND</strong> — User not found</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login -->
+      <div class="endpoint" id="auth-login" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/login</div>
+            <div class="endpoint-desc">Login with email and password. Returns access token and sets refresh cookie.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"email"</span>:    <span class="s">"ahmed@example.com"</span>,
+  <span class="k">"password"</span>: <span class="s">"Pass1234"</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"accessToken"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9..."</span>,
+    <span class="k">"user"</span>: {
+      <span class="k">"id"</span>:           <span class="s">"64f1a2b3c4d5e6f7a8b9c0d1"</span>,
+      <span class="k">"name"</span>:         <span class="s">"Ahmed Ali"</span>,
+      <span class="k">"email"</span>:        <span class="s">"ahmed@example.com"</span>,
+      <span class="k">"role"</span>:         <span class="s">"patient"</span>,
+      <span class="k">"profilePhoto"</span>: {
+        <span class="k">"url"</span>:      <span class="s">"https://res.cloudinary.com/..."</span>,
+        <span class="k">"publicId"</span>: <span class="s">"clinic/profiles/abc123"</span>
+      }
+    }
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">401</span><span
+                  class="response-desc"><strong>UNAUTHORIZED</strong> — Invalid email or password</span></div>
+              <div class="response-row"><span class="status-code status-4xx">403</span><span
+                  class="response-desc"><strong>EMAIL_NOT_VERIFIED</strong> — Please verify your email first</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google -->
+      <div class="endpoint" id="auth-google" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/google</div>
+            <div class="endpoint-desc">Redirect user to Google OAuth consent screen. On success, redirects to
+              CLIENT_URL/auth/google/success?token=ACCESS_TOKEN</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="note note-info">
+            <span>🔗</span>
+            <div>
+              <strong>Flow:</strong>
+              <div class="flow">
+                <div class="flow-step">
+                  <div class="flow-num">1</div>
+                  <div class="flow-text">Frontend redirects user to <code>GET /auth/google</code></div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">2</div>
+                  <div class="flow-text">Google consent screen → user approves</div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">3</div>
+                  <div class="flow-text">Backend callback → creates/updates user → issues tokens</div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">4</div>
+                  <div class="flow-text">Redirects to <code>CLIENT_URL/auth/google/success?token=ACCESS_TOKEN</code>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">5</div>
+                  <div class="flow-text">Frontend reads <code>?token</code> from URL and stores in memory</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="note note-warning" style="margin-top:12px">
+            <span>⚠️</span>
+            <div>On failure, redirects to <code>/api/v1/auth/google/error</code> which returns 401 JSON response.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forgot Password -->
+      <div class="endpoint" id="auth-forgot" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/forget-password</div>
+            <div class="endpoint-desc">Send password reset OTP to email. Always returns success even if email doesn't
+              exist (security).</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{ <span class="k">"email"</span>: <span class="s">"ahmed@example.com"</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"If email exists, OTP sent"</span> }</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reset Password -->
+      <div class="endpoint" id="auth-reset" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/reset-password</div>
+            <div class="endpoint-desc">Reset password with OTP. Revokes ALL sessions after reset.</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"email"</span>:       <span class="s">"ahmed@example.com"</span>,
+  <span class="k">"otp"</span>:         <span class="s">"123456"</span>,
+  <span class="k">"newPassword"</span>: <span class="s">"NewPass123"</span>   <span class="c">// min 8 chars</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"message"</span>: <span class="s">"Password reset successful"</span> } }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>OTP_EXPIRED</strong> / <strong>INVALID_OTP</strong></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Refresh Token -->
+      <div class="endpoint" id="auth-refresh" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/refresh</div>
+            <div class="endpoint-desc">Rotate refresh token. Reads token from cookie, returns new access token, sets new
+              refresh cookie. Detects token reuse attacks.</div>
+            <div class="endpoint-meta"><span class="tag tag-cookie">Cookie Required</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: { <span class="k">"accessToken"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9..."</span> }
+}
+<span class="c">// New refreshToken cookie also set automatically</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">401</span><span
+                  class="response-desc"><strong>UNAUTHORIZED</strong> — No refresh token cookie</span></div>
+              <div class="response-row"><span class="status-code status-4xx">401</span><span
+                  class="response-desc"><strong>TOKEN_EXPIRED</strong> — Refresh token expired, must re-login</span>
+              </div>
+              <div class="response-row"><span class="status-code status-4xx">401</span><span
+                  class="response-desc"><strong>REFRESH_TOKEN_REUSE</strong> — Reuse detected, all sessions
+                  revoked</span></div>
+            </div>
+          </div>
+          <div class="note note-warning">
+            <span>🔒</span>
+            <div><strong>Reuse Detection:</strong> If a stolen refresh token is used after rotation, all user sessions
+              are immediately revoked and the user must re-login.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="endpoint" id="auth-logout" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/logout</div>
+            <div class="endpoint-desc">Revoke current session and clear refresh token cookie.</div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Logged out successfully"</span> }</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Photo -->
+      <div class="endpoint" id="auth-photo" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/change-profile-image</div>
+            <div class="endpoint-desc">Upload new profile photo to Cloudinary. Deletes old photo if exists.</div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span><span
+                class="tag tag-patient">multipart/form-data</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request — multipart/form-data</div>
+            <pre>{ <span class="k">"image"</span>: <span class="t">&lt;file&gt;</span> }   <span class="c">// image only, max 5MB</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"profilePhoto"</span>: {
+      <span class="k">"url"</span>:      <span class="s">"https://res.cloudinary.com/..."</span>,
+      <span class="k">"publicId"</span>: <span class="s">"clinic/profiles/new_id"</span>
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete User -->
+      <div class="endpoint" id="auth-delete" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method DELETE">DELETE</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/auth/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Delete a user account. Deletes photo from Cloudinary and revokes all sessions.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"message"</span>: <span class="s">"User deleted successfully"</span> } }</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DOCTORS ==================== -->
+    <div class="section" id="doc-create">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(78,205,196,0.1)">👨‍⚕️</div>
+        <div>
+          <div class="section-title">Doctors</div>
+          <div class="section-prefix">/api/v1/doctors</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors</div>
+            <div class="endpoint-desc">Create a doctor profile. One profile per user. Must have role=doctor. Admin must
+              verify before accepting appointments.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"doctorName"</span>:     <span class="s">"Dr. Mohamed Hassan"</span>,   <span class="c">// required</span>
+  <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>,           <span class="c">// required</span>
+  <span class="k">"bio"</span>:            <span class="s">"10 years of experience..."</span>, <span class="c">// required, max 1000</span>
+  <span class="k">"fees"</span>:           <span class="n">300</span>,                    <span class="c">// required, in EGP</span>
+  <span class="k">"experience"</span>:     <span class="n">10</span>                     <span class="c">// required, years</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"doctor"</span>: {
+      <span class="k">"_id"</span>:            <span class="s">"64f1a2b3c4d5e6f7a8b9c0d1"</span>,
+      <span class="k">"userId"</span>:         <span class="s">"64f1a2b3c4d5e6f7a8b9c0d2"</span>,
+      <span class="k">"doctorName"</span>:     <span class="s">"Dr. Mohamed Hassan"</span>,
+      <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>,
+      <span class="k">"bio"</span>:            <span class="s">"10 years of experience..."</span>,
+      <span class="k">"fees"</span>:           <span class="n">300</span>,
+      <span class="k">"experience"</span>:     <span class="n">10</span>,
+      <span class="k">"isVerified"</span>:     <span class="n">false</span>,
+      <span class="k">"isActive"</span>:       <span class="n">true</span>,
+      <span class="k">"averageRating"</span>:  <span class="n">0</span>,
+      <span class="k">"totalReviews"</span>:   <span class="n">0</span>
+    }
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>DOCTOR_EXISTS</strong> — Doctor profile already exists for this
+                  user</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- List Doctors -->
+      <div class="endpoint" id="doc-list" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors</div>
+            <div class="endpoint-desc">List all verified and active doctors. Supports search, filter, and pagination.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{
+  <span class="k">"search"</span>:         <span class="s">"cardio"</span>,    <span class="c">// optional — searches name + specialization</span>
+  <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>,<span class="c">// optional — exact filter</span>
+  <span class="k">"minRating"</span>:      <span class="n">4</span>,           <span class="c">// optional — 0 to 5</span>
+  <span class="k">"maxFees"</span>:        <span class="n">500</span>,         <span class="c">// optional — in EGP</span>
+  <span class="k">"page"</span>:           <span class="n">1</span>,           <span class="c">// default: 1</span>
+  <span class="k">"limit"</span>:          <span class="n">10</span>          <span class="c">// default: 10, max: 50</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"doctors"</span>: [ <span class="c">/* array of doctor objects */</span> ],
+    <span class="k">"pagination"</span>: {
+      <span class="k">"total"</span>:      <span class="n">42</span>,
+      <span class="k">"page"</span>:       <span class="n">1</span>,
+      <span class="k">"limit"</span>:      <span class="n">10</span>,
+      <span class="k">"totalPages"</span>: <span class="n">5</span>
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Get Doctor -->
+      <div class="endpoint" id="doc-get" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Get doctor profile with rating summary and 3 most recent reviews. Response is
+              cached in Redis.</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"doctor"</span>: {
+      <span class="k">"_id"</span>:            <span class="s">"64f1..."</span>,
+      <span class="k">"doctorName"</span>:     <span class="s">"Dr. Mohamed Hassan"</span>,
+      <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>,
+      <span class="k">"bio"</span>:            <span class="s">"..."</span>,
+      <span class="k">"fees"</span>:           <span class="n">300</span>,
+      <span class="k">"experience"</span>:     <span class="n">10</span>,
+      <span class="k">"averageRating"</span>:  <span class="n">4.7</span>,
+      <span class="k">"totalReviews"</span>:   <span class="n">23</span>,
+      <span class="k">"recentReviews"</span>:  [
+        {
+          <span class="k">"_id"</span>:       <span class="s">"64f1..."</span>,
+          <span class="k">"rating"</span>:    <span class="n">5</span>,
+          <span class="k">"comment"</span>:   <span class="s">"Great doctor!"</span>,
+          <span class="k">"patientId"</span>: { <span class="k">"name"</span>: <span class="s">"Ahmed"</span>, <span class="k">"profilePhoto"</span>: { <span class="k">"url"</span>: <span class="s">"..."</span> } },
+          <span class="k">"createdAt"</span>: <span class="s">"2024-01-10T..."</span>
+        }
+      ]
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Update Doctor -->
+      <div class="endpoint" id="doc-update" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Update own doctor profile. All fields optional. Invalidates profile cache.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body (all optional)</div>
+            <pre>{
+  <span class="k">"doctorName"</span>?:     <span class="s">"Dr. Mohamed Hassan"</span>,
+  <span class="k">"specialization"</span>?: <span class="s">"Neurology"</span>,
+  <span class="k">"bio"</span>?:            <span class="s">"Updated bio..."</span>,
+  <span class="k">"fees"</span>?:           <span class="n">350</span>,
+  <span class="k">"experience"</span>?:     <span class="n">11</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"doctor"</span>: { <span class="c">/* updated doctor object */</span> } } }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">403</span><span
+                  class="response-desc"><strong>FORBIDDEN</strong> — Not your profile</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verify Doctor -->
+      <div class="endpoint" id="doc-verify" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors/<span class="param">:id</span>/verify</div>
+            <div class="endpoint-desc">Verify or unverify a doctor. Only verified doctors can accept appointments.</div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{ <span class="k">"isVerified"</span>: <span class="n">true</span> }   <span class="c">// or false to unverify</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"doctor"</span>: { <span class="c">/* updated doctor */</span> } } }</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slots -->
+      <div class="endpoint" id="doc-slots" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/doctors/<span class="param">:id</span>/slots</div>
+            <div class="endpoint-desc">Get available time slots for a doctor on a specific date. Excludes pending and
+              confirmed appointments. Cached in Redis.</div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{ <span class="k">"date"</span>: <span class="s">"2024-01-20"</span> }   <span class="c">// required, YYYY-MM-DD format</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"slots"</span>: [
+      { <span class="k">"startTime"</span>: <span class="s">"09:00"</span>, <span class="k">"endTime"</span>: <span class="s">"09:30"</span> },
+      { <span class="k">"startTime"</span>: <span class="s">"09:30"</span>, <span class="k">"endTime"</span>: <span class="s">"10:00"</span> },
+      { <span class="k">"startTime"</span>: <span class="s">"11:00"</span>, <span class="k">"endTime"</span>: <span class="s">"11:30"</span> }
+    ]
+  }
+}
+<span class="c">// Returns [] if doctor has no schedule for that day or all slots are booked</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCHEDULES ==================== -->
+    <div class="section" id="sch-create">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(255,209,102,0.1)">📅</div>
+        <div>
+          <div class="section-title">Schedules</div>
+          <div class="section-prefix">/api/v1/schedules — Doctor Only</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/schedules</div>
+            <div class="endpoint-desc">Create a weekly schedule for a specific day. One schedule per day per doctor.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"day"</span>:          <span class="s">"Mon"</span>,   <span class="c">// Mon | Tue | Wed | Thu | Fri | Sat | Sun</span>
+  <span class="k">"startTime"</span>:    <span class="s">"09:00"</span>, <span class="c">// HH:MM format</span>
+  <span class="k">"endTime"</span>:      <span class="s">"17:00"</span>, <span class="c">// must be after startTime</span>
+  <span class="k">"slotDuration"</span>: <span class="n">30</span>      <span class="c">// minutes per appointment, 5–240</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"schedule"</span>: {
+      <span class="k">"_id"</span>:          <span class="s">"64f1..."</span>,
+      <span class="k">"doctorId"</span>:     <span class="s">"64f1..."</span>,
+      <span class="k">"day"</span>:          <span class="s">"Mon"</span>,
+      <span class="k">"startTime"</span>:    <span class="s">"09:00"</span>,
+      <span class="k">"endTime"</span>:      <span class="s">"17:00"</span>,
+      <span class="k">"slotDuration"</span>: <span class="n">30</span>,
+      <span class="k">"isActive"</span>:     <span class="n">true</span>
+    }
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>SCHEDULE_EXISTS</strong> — Schedule for Mon already exists</span></div>
+              <div class="response-row"><span class="status-code status-4xx">422</span><span
+                  class="response-desc"><strong>VALIDATION_ERROR</strong> — endTime must be after startTime</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="sch-list" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/schedules</div>
+            <div class="endpoint-desc">Get all schedules for the authenticated doctor.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"schedules"</span>: [ <span class="c">/* array of schedule objects */</span> ] } }</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="sch-update" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/schedules/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Update a schedule. Invalidates all cached slots for that doctor.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body (all optional)</div>
+            <pre>{
+  <span class="k">"startTime"</span>?:    <span class="s">"10:00"</span>,
+  <span class="k">"endTime"</span>?:      <span class="s">"18:00"</span>,
+  <span class="k">"slotDuration"</span>?: <span class="n">45</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"schedule"</span>: { <span class="c">/* updated schedule */</span> } } }</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="sch-delete" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method DELETE">DELETE</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/schedules/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Delete a schedule. Invalidates cached slots.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Schedule deleted successfully"</span> }</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== APPOINTMENTS ==================== -->
+    <div class="section" id="apt-create">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(255,101,132,0.1)">📋</div>
+        <div>
+          <div class="section-title">Appointments</div>
+          <div class="section-prefix">/api/v1/appointments</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments</div>
+            <div class="endpoint-desc">Book an appointment. Uses distributed Redis lock to prevent double-booking.
+              Expires in 15 minutes if not paid.</div>
+            <div class="endpoint-meta">
+              <span class="tag tag-patient">Patient Only</span>
+              <span class="tag tag-auth">Idempotency-Key Header</span>
+            </div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="note note-info">
+            <span>🔑</span>
+            <div>Send <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(108,99,255,0.1);padding:2px 6px;border-radius:3px;">Idempotency-Key: &lt;uuid&gt;</code>
+              header to prevent duplicate bookings on network retry. Same key returns the same response.</div>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"doctorId"</span>:     <span class="s">"64f1a2b3c4d5e6f7a8b9c0d1"</span>,   <span class="c">// required</span>
+  <span class="k">"date"</span>:         <span class="s">"2024-01-20"</span>,                 <span class="c">// required, YYYY-MM-DD</span>
+  <span class="k">"startTime"</span>:    <span class="s">"09:00"</span>,                      <span class="c">// required, must be a valid slot</span>
+  <span class="k">"patientNotes"</span>: <span class="s">"I have chest pain"</span>            <span class="c">// optional, max 500 chars</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"appointment"</span>: {
+      <span class="k">"_id"</span>:          <span class="s">"64f1..."</span>,
+      <span class="k">"doctorId"</span>:     <span class="s">"64f1..."</span>,
+      <span class="k">"patientId"</span>:    <span class="s">"64f1..."</span>,
+      <span class="k">"date"</span>:         <span class="s">"2024-01-20T00:00:00.000Z"</span>,
+      <span class="k">"startTime"</span>:    <span class="s">"09:00"</span>,
+      <span class="k">"endTime"</span>:      <span class="s">"09:30"</span>,
+      <span class="k">"status"</span>:       <span class="s">"pending"</span>,
+      <span class="k">"paymentStatus"</span>:<span class="s">"unpaid"</span>,
+      <span class="k">"patientNotes"</span>: <span class="s">"I have chest pain"</span>,
+      <span class="k">"expiresAt"</span>:    <span class="s">"2024-01-20T09:15:00.000Z"</span>  <span class="c">// +15 min</span>
+    }
+  }
+}
+<span class="c">// WebSocket event fired: appointment:created</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>DOCTOR_UNAVAILABLE</strong> — Doctor not verified or not active</span>
+              </div>
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>INVALID_SLOT</strong> — startTime is not a valid slot for that
+                  schedule</span></div>
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>NO_SCHEDULE</strong> — Doctor has no schedule for that day</span></div>
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>SLOT_TAKEN</strong> — Slot already booked by someone else</span></div>
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>DUPLICATE_APPOINTMENT</strong> — You already have this
+                  appointment</span></div>
+              <div class="response-row"><span class="status-code status-4xx">503</span><span
+                  class="response-desc"><strong>LOCK_UNAVAILABLE</strong> — Slot is being booked, try again</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="apt-me" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments/me</div>
+            <div class="endpoint-desc">Get my appointments. For patients: their bookings. For doctors: appointments in
+              their clinic.</div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span><span
+                class="tag tag-patient">Patient</span><span class="tag tag-doctor">Doctor</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{
+  <span class="k">"status"</span>?: <span class="s">"pending"</span>,  <span class="c">// pending | confirmed | cancelled | completed | expired</span>
+  <span class="k">"page"</span>?:   <span class="n">1</span>,
+  <span class="k">"limit"</span>?:  <span class="n">10</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"appointments"</span>: [
+      {
+        <span class="k">"_id"</span>:          <span class="s">"64f1..."</span>,
+        <span class="k">"date"</span>:         <span class="s">"2024-01-20T00:00:00.000Z"</span>,
+        <span class="k">"startTime"</span>:    <span class="s">"09:00"</span>,
+        <span class="k">"endTime"</span>:      <span class="s">"09:30"</span>,
+        <span class="k">"status"</span>:       <span class="s">"confirmed"</span>,
+        <span class="k">"paymentStatus"</span>:<span class="s">"paid"</span>,
+        <span class="k">"doctorId"</span>: { <span class="k">"doctorName"</span>: <span class="s">"Dr. Mohamed"</span>, <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>, <span class="k">"fees"</span>: <span class="n">300</span> },
+        <span class="k">"patientId"</span>: { <span class="k">"name"</span>: <span class="s">"Ahmed"</span>, <span class="k">"email"</span>: <span class="s">"ahmed@..."</span>, <span class="k">"profilePhoto"</span>: { <span class="k">"url"</span>: <span class="s">"..."</span> } }
+      }
+    ],
+    <span class="k">"pagination"</span>: { <span class="k">"total"</span>: <span class="n">5</span>, <span class="k">"page"</span>: <span class="n">1</span>, <span class="k">"limit"</span>: <span class="n">10</span>, <span class="k">"totalPages"</span>: <span class="n">1</span> }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="apt-all" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments</div>
+            <div class="endpoint-desc">Get all appointments in the system with filters.</div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{
+  <span class="k">"status"</span>?:   <span class="s">"confirmed"</span>,
+  <span class="k">"doctorId"</span>?: <span class="s">"64f1..."</span>,
+  <span class="k">"date"</span>?:     <span class="s">"2024-01-20"</span>,
+  <span class="k">"page"</span>?:     <span class="n">1</span>,
+  <span class="k">"limit"</span>?:    <span class="n">10</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="apt-get" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Get a single appointment. doctorNotes is only visible to doctor and admin, hidden
+              from patient.</div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200 — Patient view</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"appointment"</span>: {
+      <span class="k">"_id"</span>: <span class="s">"64f1..."</span>,  <span class="k">"date"</span>: <span class="s">"..."</span>,  <span class="k">"startTime"</span>: <span class="s">"09:00"</span>,
+      <span class="k">"status"</span>: <span class="s">"completed"</span>,  <span class="k">"paymentStatus"</span>: <span class="s">"paid"</span>,
+      <span class="k">"patientNotes"</span>: <span class="s">"I have chest pain"</span>,
+      <span class="c">// doctorNotes: NOT included for patients</span>
+      <span class="k">"confirmedAt"</span>: <span class="s">"2024-01-20T09:05:00.000Z"</span>
+    }
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200 — Doctor/Admin view</div>
+            <pre>{
+  <span class="k">"appointment"</span>: {
+    <span class="c">// ... same as above plus:</span>
+    <span class="k">"doctorNotes"</span>: <span class="s">"Patient showed signs of hypertension..."</span>
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="apt-cancel" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments/<span class="param">:id</span>/cancel</div>
+            <div class="endpoint-desc">Cancel an appointment. Auto-refunds if paid. Cancellation rules vary by role.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-auth">Auth Required</span><span
+                class="tag tag-patient">Patient</span><span class="tag tag-doctor">Doctor</span><span
+                class="tag tag-admin">Admin</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="note note-warning">
+            <span>📋</span>
+            <div>
+              <strong>Cancellation Rules:</strong><br>
+              • <strong>Patient</strong>: only if status is <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(255,209,102,0.1);padding:2px 6px;border-radius:3px;">pending</code>
+              or <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(255,209,102,0.1);padding:2px 6px;border-radius:3px;">confirmed</code><br>
+              • <strong>Doctor</strong>: only if status is <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(255,209,102,0.1);padding:2px 6px;border-radius:3px;">pending</code>
+              or <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(255,209,102,0.1);padding:2px 6px;border-radius:3px;">confirmed</code><br>
+              • <strong>Admin</strong>: any status
+            </div>
+          </div>
+          <div class="note note-success" style="margin-top:8px">
+            <span>💰</span>
+            <div>If <code
+                style="font-family:var(--mono);font-size:11px;background:rgba(0,212,170,0.1);padding:2px 6px;border-radius:3px;">paymentStatus === "paid"</code>
+              → full Stripe refund is processed automatically.</div>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"appointment"</span>: { <span class="k">"status"</span>: <span class="s">"cancelled"</span>, <span class="k">"cancelledAt"</span>: <span class="s">"..."</span> } } }
+<span class="c">// WebSocket event fired: appointment:cancelled</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="apt-complete" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/appointments/<span class="param">:id</span>/complete</div>
+            <div class="endpoint-desc">Mark appointment as completed. Only for confirmed appointments.</div>
+            <div class="endpoint-meta"><span class="tag tag-doctor">Doctor Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{ <span class="k">"doctorNotes"</span>?: <span class="s">"Patient showed improvement..."</span> }   <span class="c">// optional, max 1000</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"appointment"</span>: { <span class="k">"status"</span>: <span class="s">"completed"</span> } } }
+<span class="c">// WebSocket event fired: appointment:completed</span></pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>INVALID_STATUS</strong> — Only confirmed appointments can be
+                  completed</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAYMENTS ==================== -->
+    <div class="section" id="pay-intent">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(99,91,255,0.1)">💳</div>
+        <div>
+          <div class="section-title">Payments</div>
+          <div class="section-prefix">/api/v1/payments — Stripe EGP</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/payments/create-intent/<span class="param">:appointmentId</span></div>
+            <div class="endpoint-desc">Create a Stripe PaymentIntent for a pending appointment. Returns clientSecret to
+              complete payment on frontend.</div>
+            <div class="endpoint-meta"><span class="tag tag-patient">Patient Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="note note-info">
+            <span>💳</span>
+            <div>
+              <strong>Payment Flow:</strong>
+              <div class="flow">
+                <div class="flow-step">
+                  <div class="flow-num">1</div>
+                  <div class="flow-text">Call this endpoint → get <code>clientSecret</code></div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">2</div>
+                  <div class="flow-text">Use <strong>Stripe.js</strong> on frontend:
+                    <code>stripe.confirmCardPayment(clientSecret)</code>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">3</div>
+                  <div class="flow-text">Stripe calls our webhook <code>POST /payments/webhook</code></div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">4</div>
+                  <div class="flow-text">Webhook confirms appointment → status: <strong>confirmed</strong>,
+                    paymentStatus: <strong>paid</strong></div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-num">5</div>
+                  <div class="flow-text">WebSocket fires <code>appointment:confirmed</code> event to patient</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"clientSecret"</span>: <span class="s">"pi_3Ox...secret_..."</span>  <span class="c">// pass to Stripe.js</span>
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>INVALID_STATUS</strong> — Appointment is not pending</span></div>
+              <div class="response-row"><span class="status-code status-4xx">403</span><span
+                  class="response-desc"><strong>FORBIDDEN</strong> — Not your appointment</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="pay-webhook" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/payments/webhook</div>
+            <div class="endpoint-desc">Stripe webhook handler. Requires raw body. Verifies signature. Do NOT call
+              manually.</div>
+            <div class="endpoint-meta"><span class="tag tag-stripe">Stripe Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="note note-danger">
+            <span>🔒</span>
+            <div>This endpoint is for <strong>Stripe only</strong>. It requires the raw request body and validates the
+              <code style="font-family:var(--mono);font-size:11px">stripe-signature</code> header. Configure your
+              webhook URL in the Stripe dashboard.
+            </div>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Handled Events</div>
+            <pre><span class="k">payment_intent.succeeded</span>:
+  → appointment.status = <span class="s">"confirmed"</span>
+  → appointment.paymentStatus = <span class="s">"paid"</span>
+  → Remove BullMQ expiry job
+  → Invalidate slots cache
+  → Emit WS: <span class="s">appointment:confirmed</span>
+  → Send confirmation email
+  → Schedule 24h reminder
+
+<span class="k">payment_intent.payment_failed</span>:
+  → No action (appointment stays pending until BullMQ expires it)</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="pay-refund" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/payments/refund/<span class="param">:appointmentId</span></div>
+            <div class="endpoint-desc">Manual full refund via Stripe. Only for paid appointments.</div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Refund processed successfully"</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>NOT_PAID</strong> — Appointment was not paid</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== REVIEWS ==================== -->
+    <div class="section" id="rev-create">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(0,212,170,0.1)">⭐</div>
+        <div>
+          <div class="section-title">Reviews</div>
+          <div class="section-prefix">/api/v1/reviews</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/reviews</div>
+            <div class="endpoint-desc">Leave a review for a completed appointment. One review per appointment.
+              Auto-updates doctor's averageRating.</div>
+            <div class="endpoint-meta"><span class="tag tag-patient">Patient Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body</div>
+            <pre>{
+  <span class="k">"appointmentId"</span>: <span class="s">"64f1a2b3c4d5e6f7a8b9c0d1"</span>,  <span class="c">// must be your completed appointment</span>
+  <span class="k">"rating"</span>:        <span class="n">5</span>,                             <span class="c">// 1–5</span>
+  <span class="k">"comment"</span>?:      <span class="s">"Excellent doctor!"</span>             <span class="c">// optional, max 1000</span>
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"review"</span>: {
+      <span class="k">"_id"</span>:           <span class="s">"64f1..."</span>,
+      <span class="k">"doctorId"</span>:      <span class="s">"64f1..."</span>,
+      <span class="k">"patientId"</span>:     <span class="s">"64f1..."</span>,
+      <span class="k">"appointmentId"</span>: <span class="s">"64f1..."</span>,
+      <span class="k">"rating"</span>:        <span class="n">5</span>,
+      <span class="k">"comment"</span>:       <span class="s">"Excellent doctor!"</span>
+    }
+  }
+}</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Possible Errors</div>
+            <div class="responses">
+              <div class="response-row"><span class="status-code status-4xx">400</span><span
+                  class="response-desc"><strong>INVALID_STATUS</strong> — Can only review completed appointments</span>
+              </div>
+              <div class="response-row"><span class="status-code status-4xx">403</span><span
+                  class="response-desc"><strong>FORBIDDEN</strong> — Not your appointment</span></div>
+              <div class="response-row"><span class="status-code status-4xx">409</span><span
+                  class="response-desc"><strong>REVIEW_EXISTS</strong> — Already reviewed this appointment</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="rev-list" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/reviews/doctor/<span class="param">:doctorId</span></div>
+            <div class="endpoint-desc">Get paginated reviews for a doctor. Includes patient name and photo.</div>
+            <div class="endpoint-meta"><span class="tag tag-public">Public</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{ <span class="k">"page"</span>?: <span class="n">1</span>, <span class="k">"limit"</span>?: <span class="n">10</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"reviews"</span>: [
+      {
+        <span class="k">"_id"</span>:       <span class="s">"64f1..."</span>,
+        <span class="k">"rating"</span>:    <span class="n">5</span>,
+        <span class="k">"comment"</span>:   <span class="s">"Excellent!"</span>,
+        <span class="k">"patientId"</span>: { <span class="k">"name"</span>: <span class="s">"Ahmed"</span>, <span class="k">"profilePhoto"</span>: { <span class="k">"url"</span>: <span class="s">"..."</span> } },
+        <span class="k">"createdAt"</span>: <span class="s">"2024-01-10T..."</span>
+      }
+    ],
+    <span class="k">"pagination"</span>: { <span class="k">"total"</span>: <span class="n">23</span>, <span class="k">"page"</span>: <span class="n">1</span>, <span class="k">"limit"</span>: <span class="n">10</span>, <span class="k">"totalPages"</span>: <span class="n">3</span> }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="rev-update" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method PATCH">PATCH</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/reviews/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Update your own review. Auto-recalculates doctor's averageRating.</div>
+            <div class="endpoint-meta"><span class="tag tag-patient">Patient Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Request Body (all optional)</div>
+            <pre>{ <span class="k">"rating"</span>?: <span class="n">4</span>, <span class="k">"comment"</span>?: <span class="s">"Updated review"</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"data"</span>: { <span class="k">"review"</span>: { <span class="c">/* updated review */</span> } } }</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="rev-delete" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method DELETE">DELETE</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/reviews/<span class="param">:id</span></div>
+            <div class="endpoint-desc">Delete a review. Patient can delete own reviews. Admin can delete any.
+              Auto-recalculates doctor's averageRating.</div>
+            <div class="endpoint-meta"><span class="tag tag-patient">Patient</span><span
+                class="tag tag-admin">Admin</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Review deleted successfully"</span> }</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ADMIN ==================== -->
+    <div class="section" id="adm-stats">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(255,101,132,0.1)">🛡️</div>
+        <div>
+          <div class="section-title">Admin</div>
+          <div class="section-prefix">/api/v1/admin — Admin Only</div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/admin/stats</div>
+            <div class="endpoint-desc">System-wide statistics dashboard data.</div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"totalUsers"</span>:    <span class="n">150</span>,
+    <span class="k">"usersByRole"</span>: { <span class="k">"patient"</span>: <span class="n">120</span>, <span class="k">"doctor"</span>: <span class="n">28</span>, <span class="k">"admin"</span>: <span class="n">2</span> },
+    <span class="k">"totalDoctors"</span>:  <span class="n">28</span>,
+    <span class="k">"doctors"</span>: { <span class="k">"verified"</span>: <span class="n">20</span>, <span class="k">"unverified"</span>: <span class="n">8</span> },
+    <span class="k">"totalAppointments"</span>: <span class="n">430</span>,
+    <span class="k">"appointmentsByStatus"</span>: {
+      <span class="k">"pending"</span>: <span class="n">12</span>,  <span class="k">"confirmed"</span>: <span class="n">45</span>,  <span class="k">"completed"</span>: <span class="n">300</span>,
+      <span class="k">"cancelled"</span>: <span class="n">50</span>, <span class="k">"expired"</span>: <span class="n">23</span>
+    },
+    <span class="k">"totalRevenue"</span>: <span class="n">135000</span>,    <span class="c">// in EGP</span>
+    <span class="k">"revenueByMonth"</span>: [
+      { <span class="k">"_id"</span>: { <span class="k">"year"</span>: <span class="n">2024</span>, <span class="k">"month"</span>: <span class="n">1</span> }, <span class="k">"revenue"</span>: <span class="n">22500</span>, <span class="k">"count"</span>: <span class="n">75</span> },
+      { <span class="k">"_id"</span>: { <span class="k">"year"</span>: <span class="n">2024</span>, <span class="k">"month"</span>: <span class="n">2</span> }, <span class="k">"revenue"</span>: <span class="n">27000</span>, <span class="k">"count"</span>: <span class="n">90</span> }
+    ],
+    <span class="k">"newUsersThisMonth"</span>: <span class="n">18</span>,
+    <span class="k">"topRatedDoctors"</span>: [
+      { <span class="k">"doctorName"</span>: <span class="s">"Dr. X"</span>, <span class="k">"specialization"</span>: <span class="s">"Cardiology"</span>, <span class="k">"averageRating"</span>: <span class="n">4.9</span>, <span class="k">"totalReviews"</span>: <span class="n">45</span> }
+    ]
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="adm-users" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/admin/users</div>
+            <div class="endpoint-desc">List all users with optional role filter and pagination.</div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Query Parameters</div>
+            <pre>{ <span class="k">"role"</span>?: <span class="s">"doctor"</span>, <span class="k">"page"</span>?: <span class="n">1</span>, <span class="k">"limit"</span>?: <span class="n">10</span> }</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"users"</span>: [ <span class="c">/* array of user objects (no password/googleId) */</span> ],
+    <span class="k">"pagination"</span>: { <span class="k">"total"</span>: <span class="n">150</span>, <span class="k">"page"</span>: <span class="n">1</span>, <span class="k">"limit"</span>: <span class="n">10</span>, <span class="k">"totalPages"</span>: <span class="n">15</span> }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="adm-pending" onclick="toggle(this)">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <div class="endpoint-info">
+            <div class="endpoint-path">/admin/doctors/pending</div>
+            <div class="endpoint-desc">Get all unverified doctors awaiting admin approval. Sorted by creation date.
+            </div>
+            <div class="endpoint-meta"><span class="tag tag-admin">Admin Only</span></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-section">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"doctors"</span>: [
+      {
+        <span class="k">"_id"</span>:            <span class="s">"64f1..."</span>,
+        <span class="k">"doctorName"</span>:     <span class="s">"Dr. Sara"</span>,
+        <span class="k">"specialization"</span>: <span class="s">"Dermatology"</span>,
+        <span class="k">"fees"</span>:           <span class="n">250</span>,
+        <span class="k">"isVerified"</span>:     <span class="n">false</span>,
+        <span class="k">"userId"</span>: { <span class="k">"name"</span>: <span class="s">"Sara Ahmed"</span>, <span class="k">"email"</span>: <span class="s">"sara@..."</span> }
+      }
+    ]
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== WEBSOCKET ==================== -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(0,212,170,0.1)">⚡</div>
+        <div>
+          <div class="section-title">WebSocket Events</div>
+          <div class="section-prefix">Socket.io — Real-time notifications</div>
+        </div>
+      </div>
+
+      <div class="note note-info">
+        <span>🔌</span>
+        <div>
+          <strong>Connect:</strong> Pass the access token in the handshake auth:<br>
+          <code
+            style="font-family:var(--mono);font-size:11px;background:rgba(108,99,255,0.1);padding:2px 6px;border-radius:3px;display:inline-block;margin-top:6px;">const socket = io(BASE_URL, { auth: { token: accessToken } })</code><br>
+          <span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">⚠️ No "Bearer" prefix — raw JWT
+            only</span>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="code-label">Server → Client Events</div>
+        <pre>{
+  <span class="k">"appointment:created"</span>:   { <span class="k">appointmentId</span>, <span class="k">doctorId</span>, <span class="k">date</span>, <span class="k">startTime</span> },
+  <span class="k">"appointment:confirmed"</span>: { <span class="k">appointmentId</span> },   <span class="c">// payment succeeded</span>
+  <span class="k">"appointment:cancelled"</span>: { <span class="k">appointmentId</span> },   <span class="c">// by any party</span>
+  <span class="k">"appointment:completed"</span>: { <span class="k">appointmentId</span> },   <span class="c">// doctor marked done</span>
+  <span class="k">"appointment:expired"</span>:   { <span class="k">appointmentId</span> },   <span class="c">// payment not made in time</span>
+  <span class="k">"appointment:reminder"</span>:  { <span class="k">appointmentId</span>, <span class="k">date</span>, <span class="k">startTime</span> }  <span class="c">// 24h before</span>
+}
+<span class="c">// All events are scoped to the authenticated user's room: user:{userId}</span></pre>
+      </div>
+    </div>
+
+    <!-- ==================== ERROR CODES ==================== -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(255,107,107,0.1)">❌</div>
+        <div>
+          <div class="section-title">Error Codes Reference</div>
+          <div class="section-prefix">All errors follow { success: false, error: { code, message, details? } }</div>
+        </div>
+      </div>
+
+      <pre>{
+  <span class="c">// Auth</span>
+  <span class="k">"UNAUTHORIZED"</span>:          <span class="n">401</span>  <span class="c">// No token / invalid credentials</span>
+  <span class="k">"INVALID_TOKEN"</span>:          <span class="n">401</span>  <span class="c">// Malformed JWT</span>
+  <span class="k">"TOKEN_EXPIRED"</span>:          <span class="n">401</span>  <span class="c">// Access token expired → call /refresh</span>
+  <span class="k">"REFRESH_TOKEN_REUSE"</span>:    <span class="n">401</span>  <span class="c">// Reuse detected → re-login required</span>
+  <span class="k">"FORBIDDEN"</span>:              <span class="n">403</span>  <span class="c">// Authenticated but insufficient role</span>
+  <span class="k">"EMAIL_NOT_VERIFIED"</span>:     <span class="n">403</span>  <span class="c">// Must verify email before login</span>
+  <span class="k">"EMAIL_TAKEN"</span>:            <span class="n">409</span>  <span class="c">// Email already registered</span>
+  <span class="k">"ALREADY_VERIFIED"</span>:       <span class="n">400</span>  <span class="c">// Email already verified</span>
+  <span class="k">"OTP_EXPIRED"</span>:            <span class="n">400</span>  <span class="c">// OTP expired (10 min window)</span>
+  <span class="k">"INVALID_OTP"</span>:            <span class="n">400</span>  <span class="c">// Wrong OTP code</span>
+
+  <span class="c">// Resources</span>
+  <span class="k">"NOT_FOUND"</span>:              <span class="n">404</span>  <span class="c">// Resource not found</span>
+  <span class="k">"DUPLICATE_KEY"</span>:          <span class="n">409</span>  <span class="c">// MongoDB unique constraint</span>
+  <span class="k">"VALIDATION_ERROR"</span>:       <span class="n">422</span>  <span class="c">// Zod/Mongoose validation (details array)</span>
+  <span class="k">"INVALID_ID"</span>:             <span class="n">400</span>  <span class="c">// Invalid MongoDB ObjectId</span>
+
+  <span class="c">// Appointments</span>
+  <span class="k">"DOCTOR_UNAVAILABLE"</span>:     <span class="n">400</span>  <span class="c">// Not verified or not active</span>
+  <span class="k">"NO_SCHEDULE"</span>:            <span class="n">400</span>  <span class="c">// No schedule for that day</span>
+  <span class="k">"INVALID_SLOT"</span>:           <span class="n">400</span>  <span class="c">// Time not in schedule slots</span>
+  <span class="k">"INVALID_STATUS"</span>:         <span class="n">400</span>  <span class="c">// Wrong status for operation</span>
+  <span class="k">"SLOT_TAKEN"</span>:             <span class="n">409</span>  <span class="c">// Slot already booked</span>
+  <span class="k">"DUPLICATE_APPOINTMENT"</span>:  <span class="n">409</span>  <span class="c">// You already have this appointment</span>
+  <span class="k">"SLOT_LOCKED"</span>:            <span class="n">409</span>  <span class="c">// Slot being booked by someone else</span>
+  <span class="k">"LOCK_UNAVAILABLE"</span>:       <span class="n">503</span>  <span class="c">// Failed to acquire lock after retries</span>
+
+  <span class="c">// Payments</span>
+  <span class="k">"PAYMENT_ERROR"</span>:          <span class="n">500</span>  <span class="c">// Stripe error</span>
+  <span class="k">"WEBHOOK_INVALID"</span>:        <span class="n">400</span>  <span class="c">// Invalid Stripe signature</span>
+  <span class="k">"NOT_PAID"</span>:               <span class="n">400</span>  <span class="c">// Refund on unpaid appointment</span>
+
+  <span class="c">// Reviews</span>
+  <span class="k">"REVIEW_EXISTS"</span>:          <span class="n">409</span>  <span class="c">// Already reviewed this appointment</span>
+
+  <span class="c">// Rate Limiting</span>
+  <span class="k">"RATE_LIMIT_EXCEEDED"</span>:    <span class="n">429</span>  <span class="c">// Check Retry-After header</span>
+
+  <span class="c">// Server</span>
+  <span class="k">"INTERNAL_ERROR"</span>:         <span class="n">500</span>  <span class="c">// Unexpected server error</span>
+}</pre>
+    </div>
+
+  </main>
+
+  <script>
+    function toggle(el) {
+      if (event.target.tagName === 'A') return;
+      el.classList.toggle('open');
+    }
+
+    // Sidebar active link on scroll
+    const sections = document.querySelectorAll('[id]');
+    const links = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      links.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+      });
+    });
+
+    // Smooth scroll
+    links.forEach(l => {
+      l.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(l.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+
+</html>
