@@ -68,8 +68,9 @@ A full-featured clinic appointment booking backend that supports:
            ▼                         ▼
 ┌─────────────────────────────────────────────────────────┐
 │                    Express.js API                       │
+│                                                         │
 │  Helmet │ CORS │ Rate Limit │ Auth │ Validate │ Log     │
-├──────────┬────────────────────────────────────────────  │
+├──────────┬───────────────┬───────────┬──────────────────│
 │  Routes  │  Controllers  │  Services │  Middleware      │
 └──────────┴───────┬───────┴───────────┴──────────────────┘
                    │
