@@ -7,19 +7,19 @@ import * as controller from "./payment.controller";
 
 const router = Router();
 
-// [patient]
+// [patient] Create Paymob payment session → iframeUrl
 router.post(
-  "/create-intent/:appointmentId",
+  "/create-session/:appointmentId",
   authenticate,
   authorize(Role.PATIENT),
-  asyncHandler(controller.createPaymentIntent),
+  asyncHandler(controller.createPaymentSession),
 );
 
-// [stripe webhook] — بدون authenticate، Stripe بيوقع بنفسه
-// raw body middleware بيتسجل في app.ts على الـ path ده بس
-router.post("/webhook", asyncHandler(controller.stripeWebhook));
+// [paymob] Webhook — بدون authenticate، Paymob بيوقع بالـ HMAC
+// HMAC بييجي في query string: ?hmac=...
+router.post("/webhook", asyncHandler(controller.paymobWebhook));
 
-// [admin]
+// [admin] Manual refund
 router.post(
   "/refund/:appointmentId",
   authenticate,

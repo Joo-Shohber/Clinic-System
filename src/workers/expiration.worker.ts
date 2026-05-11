@@ -36,7 +36,6 @@ export function startExpirationWorker() {
         await processRefund(appointment.paymentIntentId);
         appointment.paymentStatus = PaymentStatus.REFUNDED;
       }
-
       appointment.status = AppointmentStatus.EXPIRED;
       await appointment.save();
 

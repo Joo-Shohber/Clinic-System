@@ -37,12 +37,6 @@ export function createApp() {
     }),
   );
 
-  // ===== Stripe Webhook — raw body BEFORE express.json() =====
-  app.use(
-    "/api/v1/payments/webhook",
-    express.raw({ type: "application/json" }),
-  );
-
   // ===== Body Parsing =====
   app.use(express.json({ limit: "10kb" }));
   app.use(cookieParser(env.COOKIE_SECRET));

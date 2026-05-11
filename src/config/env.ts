@@ -41,9 +41,11 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
 
-  // Stripe
-  STRIPE_SECRET_KEY: z.string().min(1),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1),
+  // Paymob
+  PAYMOB_API_KEY: z.string().min(1),
+  PAYMOB_INTEGRATION_ID: z.string().min(1),
+  PAYMOB_IFRAME_ID: z.string().min(1),
+  PAYMOB_HMAC_SECRET: z.string().min(1),
 
   // Config
   BCRYPT_ROUNDS: z.string().default("12").transform(Number),

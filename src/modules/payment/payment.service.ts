@@ -1,7 +1,8 @@
-import Stripe from "stripe";
+import crypto from "crypto";
 import getEnv from "../../config/env";
 import { Appointment } from "../../models/appointment.model";
 import { Doctor } from "../../models/doctor.model";
+import { User } from "../../models/user.model";
 import { AppError } from "../../types/errors";
 import {
   AppointmentStatus,
@@ -14,89 +15,236 @@ import {
   getExpirationQueue,
   getNotificationQueue,
 } from "../../workers/queue.definitions";
+import { logger } from "../../config/logger";
 
-let _stripe: InstanceType<typeof Stripe> | null = null;
+const PAYMOB_BASE_URL = "https://accept.paymob.com/api";
 
-export function getStripe(): InstanceType<typeof Stripe> {
-  if (_stripe) return _stripe;
-  _stripe = new Stripe(getEnv().STRIPE_SECRET_KEY);
-  return _stripe;
+// ===== Step 1: Authenticate → get auth token =====
+async function getAuthToken(): Promise<string> {
+  const env = getEnv();
+
+  const res = await fetch(`${PAYMOB_BASE_URL}/auth/tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: env.PAYMOB_API_KEY }),
+  });
+
+  if (!res.ok) {
+    throw new AppError("PAYMENT_ERROR", 500, "Paymob authentication failed");
+  }
+
+  const data = (await res.json()) as { token: string };
+  return data.token;
 }
 
-// ===== Create Payment Intent =====
+// ===== Step 2: Create Order =====
+async function createOrder(
+  authToken: string,
+  amountCents: number,
+  merchantOrderId: string,
+): Promise<string> {
+  const res = await fetch(`${PAYMOB_BASE_URL}/ecommerce/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      auth_token: authToken,
+      delivery_needed: false,
+      amount_cents: amountCents,
+      currency: "EGP",
+      merchant_order_id: merchantOrderId,
+      items: [],
+    }),
+  });
 
-export async function createPaymentIntent(
+  if (!res.ok) {
+    throw new AppError("PAYMENT_ERROR", 500, "Failed to create Paymob order");
+  }
+
+  const data = (await res.json()) as { id: number };
+  return data.id.toString();
+}
+
+// ===== Step 3: Create Payment Key =====
+async function createPaymentKey(
+  authToken: string,
+  orderId: string,
+  amountCents: number,
+  billingData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone_number: string;
+  },
+): Promise<string> {
+  const env = getEnv();
+
+  const res = await fetch(`${PAYMOB_BASE_URL}/acceptance/payment_keys`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      auth_token: authToken,
+      amount_cents: amountCents,
+      expiration: 3600, // 1 hour
+      order_id: orderId,
+      billing_data: billingData,
+      currency: "EGP",
+      integration_id: env.PAYMOB_INTEGRATION_ID,
+      lock_order_when_paid: true,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new AppError("PAYMENT_ERROR", 500, "Failed to create payment key");
+  }
+
+  const data = (await res.json()) as { token: string };
+  return data.token;
+}
+
+// ===== Main: Create Payment Session =====
+
+export async function createPaymentSession(
   appointmentId: string,
   patientId: string,
-): Promise<{ clientSecret: string }> {
+): Promise<{ iframeUrl: string; paymobOrderId: string }> {
   const appointment = await Appointment.findById(appointmentId);
   if (!appointment)
     throw new AppError("NOT_FOUND", 404, "Appointment not found");
+
   if (appointment.patientId.toString() !== patientId) {
     throw new AppError("FORBIDDEN", 403, "Not your appointment");
   }
+
   if (appointment.status !== AppointmentStatus.PENDING) {
     throw new AppError("INVALID_STATUS", 400, "Appointment is not pending");
   }
 
-  const doctor = await Doctor.findById(appointment.doctorId);
+  const [doctor, patient] = await Promise.all([
+    Doctor.findById(appointment.doctorId),
+    User.findById(patientId),
+  ]);
+
   if (!doctor) throw new AppError("NOT_FOUND", 404, "Doctor not found");
+  if (!patient) throw new AppError("NOT_FOUND", 404, "Patient not found");
 
-  const stripe = getStripe();
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: doctor.fees * 100, // piastres
-    currency: "egp",
-    metadata: { appointmentId, patientId },
-  });
+  const amountCents = doctor.fees * 100;
 
-  appointment.paymentIntentId = paymentIntent.id;
+  // Split name into first + last (fallback if single word)
+  const nameParts = patient.name.split(" ");
+  const firstName = nameParts[0] ?? patient.name;
+  const lastName = nameParts.slice(1).join(" ") || "N/A";
+
+  const billingData = {
+    first_name: firstName,
+    last_name: lastName,
+    email: patient.email,
+    phone_number: "N/A", // optional — يمكن تضيف phone للـ user model لاحقاً
+    apartment: "N/A",
+    floor: "N/A",
+    street: "N/A",
+    building: "N/A",
+    shipping_method: "N/A",
+    postal_code: "N/A",
+    city: "N/A",
+    country: "EG",
+    state: "N/A",
+  };
+
+  // Paymob 3-step flow
+  const authToken = await getAuthToken();
+  const paymobOrderId = await createOrder(
+    authToken,
+    amountCents,
+    appointmentId,
+  );
+  const paymentToken = await createPaymentKey(
+    authToken,
+    paymobOrderId,
+    amountCents,
+    billingData,
+  );
+
+  // حفظ الـ paymobOrderId للـ webhook reconciliation
+  appointment.paymentIntentId = paymobOrderId;
   await appointment.save();
 
-  if (!paymentIntent.client_secret) {
-    throw new AppError("PAYMENT_ERROR", 500, "Failed to create payment intent");
-  }
-
-  return { clientSecret: paymentIntent.client_secret };
-}
-
-// ===== Stripe Webhook =====
-
-export async function handleStripeWebhook(
-  rawBody: Buffer,
-  signature: string,
-): Promise<void> {
   const env = getEnv();
-  const stripe = getStripe();
+  const iframeUrl = `https://accept.paymob.com/api/acceptance/iframes/${env.PAYMOB_IFRAME_ID}?payment_token=${paymentToken}`;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let event: any;
-  try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      env.STRIPE_WEBHOOK_SECRET,
-    );
-  } catch {
-    throw new AppError("WEBHOOK_INVALID", 400, "Invalid webhook signature");
+  return { iframeUrl, paymobOrderId };
+}
+
+// ===== Webhook Handler =====
+// Paymob بيبعت GET request (redirect) و POST (callback)
+// بنستخدم الـ POST callback
+
+export interface PaymobWebhookPayload {
+  obj: {
+    id: number;
+    success: boolean;
+    amount_cents: number;
+    currency: string;
+    order: { id: number; merchant_order_id: string };
+    is_refund: boolean;
+    is_void: boolean;
+    pending: boolean;
+    error_occured: boolean;
+  };
+  hmac: string;
+}
+
+// HMAC verification — بيتحقق إن الـ webhook فعلاً جاي من Paymob
+export function verifyPaymobHmac(
+  payload: PaymobWebhookPayload,
+  hmacFromQuery: string,
+): boolean {
+  const env = getEnv();
+  const obj = payload.obj;
+
+  // الـ fields اللي Paymob بيحسب HMAC عليها بالترتيب ده بالظبط
+  const hmacString = [
+    obj.amount_cents,
+    obj.order.id,
+    obj.currency,
+    obj.error_occured,
+    obj.id,
+    obj.pending,
+    obj.is_refund,
+    obj.is_void,
+    obj.success,
+  ]
+    .map(String)
+    .join("");
+
+  const computed = crypto
+    .createHmac("sha512", env.PAYMOB_HMAC_SECRET)
+    .update(hmacString)
+    .digest("hex");
+
+  return computed === hmacFromQuery;
+}
+
+export async function handlePaymobWebhook(
+  payload: PaymobWebhookPayload,
+  hmacFromQuery: string,
+): Promise<void> {
+  // 1. Verify HMAC
+  if (!verifyPaymobHmac(payload, hmacFromQuery)) {
+    throw new AppError("WEBHOOK_INVALID", 400, "Invalid Paymob HMAC signature");
   }
 
-  switch (event.type) {
-    case "payment_intent.succeeded":
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await onPaymentSucceeded(event.data.object as any);
-      break;
-    case "payment_intent.payment_failed":
-      break;
-    default:
-      break;
+  const { obj } = payload;
+
+  // 2. Handle transaction
+  if (obj.success && !obj.is_refund && !obj.is_void) {
+    await onPaymentSucceeded(obj.order.merchant_order_id);
+  } else if (obj.is_refund) {
+    await onRefundSucceeded(obj.order.merchant_order_id);
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function onPaymentSucceeded(paymentIntent: any): Promise<void> {
-  const appointment = await Appointment.findOne({
-    paymentIntentId: paymentIntent.id,
-  });
+async function onPaymentSucceeded(appointmentId: string): Promise<void> {
+  const appointment = await Appointment.findById(appointmentId);
   if (!appointment) return;
   if (appointment.status === AppointmentStatus.CONFIRMED) return; // idempotent
 
@@ -112,29 +260,24 @@ async function onPaymentSucceeded(paymentIntent: any): Promise<void> {
   );
 
   // Remove BullMQ expiry job
-
-  const job = await getExpirationQueue().getJob(appointment._id.toString());
+  const job = await getExpirationQueue().getJob(appointmentId);
   if (job) await job.remove();
 
   // WebSocket
-  wsEmit.appointmentConfirmed(
-    appointment.patientId.toString(),
-    appointment._id.toString(),
-  );
+  wsEmit.appointmentConfirmed(appointment.patientId.toString(), appointmentId);
 
-  // Email notification via worker
-
+  // Notification
   await getNotificationQueue().add(
     NotificationType.APPOINTMENT_CONFIRMED,
     {
       type: NotificationType.APPOINTMENT_CONFIRMED,
-      appointmentId: appointment._id.toString(),
+      appointmentId,
       userId: appointment.patientId.toString(),
     },
     { attempts: 5, backoff: { type: "exponential", delay: 2000 } },
   );
 
-  // Schedule reminder 24h before
+  // Schedule 24h reminder
   const appointmentDateTime = new Date(appointment.date);
   const [h, m] = appointment.startTime.split(":").map(Number);
   appointmentDateTime.setUTCHours(h!, m!, 0, 0);
@@ -146,7 +289,7 @@ async function onPaymentSucceeded(paymentIntent: any): Promise<void> {
       NotificationType.APPOINTMENT_REMINDER,
       {
         type: NotificationType.APPOINTMENT_REMINDER,
-        appointmentId: appointment._id.toString(),
+        appointmentId,
         userId: appointment.patientId.toString(),
       },
       {
@@ -156,6 +299,18 @@ async function onPaymentSucceeded(paymentIntent: any): Promise<void> {
       },
     );
   }
+
+  logger.info({ appointmentId }, "Payment confirmed via Paymob");
+}
+
+async function onRefundSucceeded(appointmentId: string): Promise<void> {
+  const appointment = await Appointment.findById(appointmentId);
+  if (!appointment) return;
+
+  appointment.paymentStatus = PaymentStatus.REFUNDED;
+  await appointment.save();
+
+  logger.info({ appointmentId }, "Refund confirmed via Paymob");
 }
 
 // ===== Refund =====
@@ -168,19 +323,76 @@ export async function refundAppointment(appointmentId: string): Promise<void> {
     throw new AppError("NOT_PAID", 400, "Appointment was not paid");
   }
   if (!appointment.paymentIntentId) {
-    throw new AppError("NO_PAYMENT_INTENT", 400, "No payment intent found");
+    throw new AppError("NO_PAYMENT_ID", 400, "No Paymob order ID found");
   }
 
-  await processRefund(appointment.paymentIntentId);
+  await processRefund(
+    appointment.paymentIntentId,
+    appointment.doctorId.toString(),
+  );
   appointment.paymentStatus = PaymentStatus.REFUNDED;
   await appointment.save();
 }
 
 // بتتاستخدم كمان من expiration worker و cancel flow
-export async function processRefund(paymentIntentId: string): Promise<void> {
-  const stripe = getStripe();
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-  const chargeId = paymentIntent.latest_charge as string | null;
-  if (!chargeId) return;
-  await stripe.refunds.create({ charge: chargeId });
+export async function processRefund(
+  paymobOrderId: string,
+  doctorId?: string,
+): Promise<void> {
+  // لإتمام الـ refund بنحتاج transaction ID مش order ID
+  // الأبسط هو إننا نعمل void لو الـ transaction لسه fresh
+  // أو نستخدم Paymob dashboard للـ manual refund
+  // هنا بنسجل الطلب وبنحدث الـ status — الـ refund الفعلي عبر webhook
+
+  const authToken = await getAuthToken();
+
+  // Get transactions for this order
+  const res = await fetch(
+    `${PAYMOB_BASE_URL}/ecommerce/orders/${paymobOrderId}/transactions`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    },
+  );
+
+  if (!res.ok) {
+    logger.error(
+      { paymobOrderId },
+      "Failed to get Paymob transactions for refund",
+    );
+    throw new AppError("PAYMENT_ERROR", 500, "Failed to process refund");
+  }
+
+  const transactions = (await res.json()) as Array<{
+    id: number;
+    success: boolean;
+    is_refund: boolean;
+  }>;
+  const successfulTx = transactions.find((t) => t.success && !t.is_refund);
+
+  if (!successfulTx) {
+    logger.warn({ paymobOrderId }, "No successful transaction found to refund");
+    return;
+  }
+
+  // Refund request
+  const refundRes = await fetch(
+    `${PAYMOB_BASE_URL}/acceptance/void_refund/refund`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        auth_token: authToken,
+        transaction_id: successfulTx.id,
+      }),
+    },
+  );
+
+  if (!refundRes.ok) {
+    throw new AppError("PAYMENT_ERROR", 500, "Paymob refund request failed");
+  }
+
+  logger.info(
+    { paymobOrderId, transactionId: successfulTx.id },
+    "Refund requested via Paymob",
+  );
 }
