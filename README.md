@@ -595,4 +595,4 @@ GET /health
 
 ## License
 
-MIT
+SONIC
