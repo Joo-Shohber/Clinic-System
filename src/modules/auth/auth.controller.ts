@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import passport from "passport";
 import * as authService from "./auth.service";
 import getEnv from "../../config/env";
+import { IUser } from "../../models/user.model";
 
 const REFRESH_TOKEN_COOKIE = "refreshToken";
 
@@ -204,14 +205,11 @@ export async function googleCallbackHandler(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const env = getEnv();
-  try {
-    const result = await authService.googleLogin(req.user as any);
-    setRefreshTokenCookie(res, result.tokens.refreshToken);
-    res.redirect(
-      `${env.CLIENT_URL}/auth/google/success?token=${result.tokens.accessToken}`,
-    );
-  } catch {
-    res.redirect(`${env.CLIENT_URL}/auth/google/error`);
-  }
+  const result = await authService.googleLogin(req.user as unknown as IUser);
+  setRefreshTokenCookie(res, result.tokens.refreshToken);
+
+  res.status(200).json({
+    success: true,
+    data: { user: result.user, accessToken: result.tokens.accessToken },
+  });
 }

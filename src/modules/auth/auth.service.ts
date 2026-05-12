@@ -1,4 +1,4 @@
-import { User } from "../../models/user.model";
+import { IUser, User } from "../../models/user.model";
 import { AppError } from "../../types/errors";
 import { REDIS_KEYS } from "../../services/cache.service";
 import { createOTP, verifyOTP } from "../../services/otp.service";
@@ -252,22 +252,19 @@ export async function changePassword(
 
 // ===== Google OAuth =====
 
-export async function googleLogin(user: JwtPayload) {
-  const existUser = await User.findById(user.userId);
-  if (!existUser) throw new AppError("NOT_FOUND", 404, "User not found");
-
+export async function googleLogin(user: IUser) {
   const accessToken = generateAccessToken({
-    userId: user.userId,
+    userId: user._id.toString(),
     role: user.role,
   });
-  const refreshToken = await generateRefreshToken(user.userId);
+  const refreshToken = await generateRefreshToken(user._id.toString());
 
   return {
     user: {
-      id: existUser.id,
-      name: existUser.name,
-      email: existUser.email,
-      role: existUser.role,
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
     },
     tokens: { accessToken, refreshToken },
   };
