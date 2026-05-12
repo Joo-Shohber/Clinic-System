@@ -1,12 +1,12 @@
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { User } from "../models/user.model";
 import { Role } from "../types/enums";
 import getEnv from "./env";
 
+const env = getEnv();
+
 export function initPassport(): void {
-  const env = getEnv();
-  
   passport.use(
     new GoogleStrategy(
       {
@@ -14,7 +14,7 @@ export function initPassport(): void {
         clientSecret: env.GOOGLE_CLIENT_SECRET,
         callbackURL: env.GOOGLE_CALLBACK_URL,
       },
-      async (_accessToken, _refreshToken, profile, done) => {
+      async (_accessToken, _refreshToken, profile: Profile, done) => {
         try {
           const email = profile.emails?.[0]?.value;
           if (!email) {

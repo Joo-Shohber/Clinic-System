@@ -1,4 +1,5 @@
 import { z } from "zod";
+import logger from "./logger";
 
 const envSchema = z.object({
   // App
@@ -31,6 +32,10 @@ const envSchema = z.object({
   SMTP_PASS: z.string().min(1),
   EMAIL_FROM: z.string().email(),
 
+  // OTP
+  OTP_LENGTH: z.string().default("6").transform(Number),
+  OTP_EXPIRES_MINUTES: z.string().default("10").transform(Number),
+
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
@@ -49,8 +54,6 @@ const envSchema = z.object({
 
   // Config
   BCRYPT_ROUNDS: z.string().default("12").transform(Number),
-  OTP_LENGTH: z.string().default("6").transform(Number),
-  OTP_EXPIRES_MINUTES: z.string().default("10").transform(Number),
   APPOINTMENT_EXPIRY_MINUTES: z.string().default("15").transform(Number),
   CACHE_TTL_SECONDS: z.string().default("60").transform(Number),
   LOCK_TTL_MS: z.string().default("10000").transform(Number),
@@ -64,8 +67,8 @@ let _env: Env;
 export function parseEnv(): Env {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    console.error("Invalid environment variables:");
-    console.error(result.error.format());
+    logger.error("Invalid environment variables:");
+    logger.error(result.error.format());
     process.exit(1);
   }
   _env = result.data;
