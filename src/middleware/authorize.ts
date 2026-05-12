@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import { Role } from "../types/enums";
 import { AppError } from "../types/errors";
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import getRedis from "../config/redis";
 import { AppError } from "../types/errors";
 import { RATE_LIMIT_SCRIPT } from "../utils/lua-scripts";
@@ -14,7 +14,7 @@ export function createRateLimiter(options: RateLimiterOptions): RequestHandler {
     try {
       const redis = getRedis();
 
-      const identifier = req.user.userId ?? req.ip ?? "unknown";
+      const identifier = req.user.userId ?? req.ip;
       const key = REDIS_KEYS.rateLimit(identifier, req.path);
 
       const now = Date.now().toString();

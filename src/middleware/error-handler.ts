@@ -31,14 +31,12 @@ export function errorHandler(
   let message = "An unexpected error occurred";
   let details: unknown;
 
-  if (err instanceof AppError && err.isOperational) {
+  if (err instanceof AppError) {
     statusCode = err.statusCode;
     code = err.code;
     message = err.message;
     details = err.details;
-  } 
-
-  else if (err instanceof mongoose.Error.ValidationError) {
+  } else if (err instanceof mongoose.Error.ValidationError) {
     statusCode = 422;
     code = "VALIDATION_ERROR";
     message = "Validation failed";
@@ -46,19 +44,15 @@ export function errorHandler(
       field: e.path,
       message: e.message,
     }));
-  }
-
-  else if (err instanceof mongoose.Error.CastError) {
+  } else if (err instanceof mongoose.Error.CastError) {
     statusCode = 400;
     code = "INVALID_ID";
     message = `Invalid value for field: ${err.path}`;
-  } 
-
-  else if (
+  } else if (
     typeof err === "object" &&
     err !== null &&
     "code" in err &&
-    (err as { code: number }).code === 11000
+    (err.code as number) === 11000
   ) {
     const mongoErr = err as { keyValue?: Record<string, unknown> };
     statusCode = 409;
@@ -68,12 +62,10 @@ export function errorHandler(
       : "unknown";
     message = `Duplicate value for field: ${field}`;
     details = mongoErr.keyValue;
-  } 
-
-  else if (err instanceof Error) {
-    if (env.NODE_ENV !== 'production') {
+  } else if (err instanceof Error) {
+    if (env.NODE_ENV !== "production") {
       message = err.message;
-    }  
+    }
   }
 
   const body: ErrorResponse = {
