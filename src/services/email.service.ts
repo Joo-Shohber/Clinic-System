@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import getEnv from "../config/env";
 import { logger } from "../config/logger";
 
-let _transporter: Transporter | null = null;
+let _transporter: Transporter;
 
 function getTransporter(): Transporter {
   if (_transporter) return _transporter;
@@ -21,8 +21,6 @@ function getTransporter(): Transporter {
   return _transporter;
 }
 
-// ===== Template Definitions =====
-
 type TemplateKey =
   | "email_verification_otp"
   | "password_reset_otp"
@@ -33,8 +31,14 @@ type TemplateKey =
   | "appointment_reminder";
 
 type TemplateData = {
-  email_verification_otp: { otp: string; expiresInMinutes: number };
-  password_reset_otp: { otp: string; expiresInMinutes: number };
+  email_verification_otp: {
+    otp: string;
+    expiresInMinutes: number;
+  };
+  password_reset_otp: {
+    otp: string;
+    expiresInMinutes: number;
+  };
   appointment_confirmed: {
     doctorName: string;
     date: string;
@@ -45,9 +49,20 @@ type TemplateData = {
     date: string;
     startTime: string;
   };
-  appointment_expired: { doctorName: string; date: string; startTime: string };
-  appointment_completed: { doctorName: string; date: string };
-  appointment_reminder: { doctorName: string; date: string; startTime: string };
+  appointment_expired: {
+    doctorName: string;
+    date: string;
+    startTime: string;
+  };
+  appointment_completed: {
+    doctorName: string;
+    date: string;
+  };
+  appointment_reminder: {
+    doctorName: string;
+    date: string;
+    startTime: string;
+  };
 };
 
 type Template = { subject: string; html: string };

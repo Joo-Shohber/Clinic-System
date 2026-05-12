@@ -19,6 +19,39 @@ export async function uploadImage(
   });
 }
 
+export async function uploadImages(
+  files: Buffer[],
+  folder: string,
+  retries = 3,
+) {
+  let toUpload = files;
+  const success: UploadApiResponse[] = [];
+
+  for (let i = 0; i < retries; i++) {
+    const results = await Promise.allSettled(
+      toUpload.map((file) => uploadImage(file, folder)),
+    );
+
+    const failed: Buffer[] = [];
+
+    results.forEach((r, index) => {
+      const file = toUpload[index];
+
+      if (r.status === "fulfilled") {
+        success.push(r.value);
+      } else {
+        failed.push(file);
+      }
+    });
+
+    if (failed.length === 0) break;
+
+    toUpload = failed;
+  }
+
+  return success;
+}
+
 export async function deleteImage(publicId: string): Promise<void> {
   await cloudinary.uploader.destroy(publicId);
 }

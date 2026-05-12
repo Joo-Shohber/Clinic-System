@@ -24,10 +24,11 @@ export const REDIS_KEYS = {
 };
 
 export class CacheService {
+  private redis = getRedis();
+
   async get<T>(key: string): Promise<T | null> {
-    const redis = getRedis();
     try {
-      const data = await redis.get(key);
+      const data = await this.redis.get(key);
       if (!data) return null;
       return JSON.parse(data) as T;
     } catch {
@@ -36,24 +37,21 @@ export class CacheService {
   }
 
   async set<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
-    const redis = getRedis();
     const env = getEnv();
     const ttl = ttlSeconds ?? env.CACHE_TTL_SECONDS;
-    await redis.set(key, JSON.stringify(value), "EX", ttl);
+    await this.redis.set(key, JSON.stringify(value), "EX", ttl);
   }
 
   async del(...keys: string[]): Promise<void> {
-    const redis = getRedis();
-    if (keys.length > 0) await redis.del(...keys);
+    if (keys.length > 0) await this.redis.del(...keys);
   }
 
   async invalidatePattern(pattern: string): Promise<void> {
-    const redis = getRedis();
     let cursor = "0";
     const keysToDelete: string[] = [];
 
     do {
-      const [nextCursor, keys] = await redis.scan(
+      const [nextCursor, keys] = await this.redis.scan(
         cursor,
         "MATCH",
         pattern,
@@ -64,7 +62,7 @@ export class CacheService {
       keysToDelete.push(...keys);
     } while (cursor !== "0");
 
-    if (keysToDelete.length > 0) await redis.del(...keysToDelete);
+    if (keysToDelete.length > 0) await this.redis.del(...keysToDelete);
   }
 }
 

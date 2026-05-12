@@ -7,7 +7,7 @@ import getEnv from "../config/env";
 import { logger } from "../config/logger";
 import { JwtPayload } from "../types/express";
 
-let _io: SocketServer | null = null;
+let _io: SocketServer;
 
 export function initWebSocket(httpServer: HttpServer): SocketServer {
   const env = getEnv();
@@ -61,8 +61,6 @@ export function emitToUser(userId: string, event: string, data: unknown): void {
     logger.error({ err, userId, event }, "Failed to emit WS event");
   }
 }
-
-// ===== Typed Emitters =====
 
 export const wsEmit = {
   appointmentCreated(
