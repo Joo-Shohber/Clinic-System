@@ -14,7 +14,8 @@ export function createRateLimiter(options: RateLimiterOptions): RequestHandler {
     try {
       const redis = getRedis();
 
-      const identifier = req.user.userId ?? req.ip;
+      const userId = (req.user as { userId?: string } | undefined)?.userId;
+      const identifier = userId ?? req.ip ?? "unknown";
       const key = REDIS_KEYS.rateLimit(identifier, req.path);
 
       const now = Date.now().toString();

@@ -1,6 +1,8 @@
+import { Day } from "../types/enums";
+
 export interface TimeSlot {
-  startTime: string; // "09:00"
-  endTime: string; // "09:30"
+  startTime: string;
+  endTime: string;
 }
 
 export function generateSlots(
@@ -10,11 +12,11 @@ export function generateSlots(
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
 
-  const [startH, startM] = startTime.split(":").map(Number);
-  const [endH, endM] = endTime.split(":").map(Number);
+  const [startHour, startMin] = startTime.split(":").map(Number);
+  const [endHour, endMin] = endTime.split(":").map(Number);
 
-  let currentMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
+  let currentMinutes = startHour * 60 + startMin;
+  const endMinutes = endHour * 60 + endMin;
 
   while (currentMinutes + durationMinutes <= endMinutes) {
     const slotStart = minutesToTime(currentMinutes);
@@ -32,8 +34,6 @@ function minutesToTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-import { Day } from "../types/enums";
-
 export function getDayName(dateStr: string): Day {
   const days: Day[] = [
     Day.SUN,
@@ -45,5 +45,5 @@ export function getDayName(dateStr: string): Day {
     Day.SAT,
   ];
   const date = new Date(dateStr + "T00:00:00Z");
-  return days[date.getUTCDay()]!;
+  return days[date.getUTCDay()];
 }

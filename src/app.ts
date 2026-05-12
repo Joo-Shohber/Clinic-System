@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 import { pinoHttp } from "pino-http";
 import { v4 as uuidv4 } from "uuid";
 import passport from "passport";
@@ -41,8 +42,21 @@ export function createApp() {
   app.use(express.json({ limit: "10kb" }));
   app.use(cookieParser(env.COOKIE_SECRET));
 
+  app.use(
+    session({
+      secret: env.COOKIE_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: env.NODE_ENV === "production",
+        maxAge: 5 * 60 * 1000, // 5 دقايق بس كفاية للـ OAuth flow
+      },
+    }),
+  );
+
   // ===== Passport =====
   app.use(passport.initialize());
+  app.use(passport.session());
 
   // ===== Logging =====
   app.use(
@@ -66,9 +80,7 @@ export function createApp() {
   });
 
   // ===== Rate Limiting =====
-  // Auth routes — stricter limit لمنع brute force
-  app.use("/api/v1/auth", createRateLimiter({ max: 20, windowMs: 60_000 }));
-  // Global limit
+  app.use("/api/v1/auth", createRateLimiter({ max: 5, windowMs: 60_000 }));
   app.use(createRateLimiter({ max: 100, windowMs: 60_000 }));
 
   // ===== Routes =====
