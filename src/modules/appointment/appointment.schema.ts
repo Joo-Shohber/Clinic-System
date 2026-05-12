@@ -3,7 +3,16 @@ import { AppointmentStatus } from "../../types/enums";
 
 export const CreateAppointmentDto = z.object({
   doctorId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
+    .refine(
+      (d) => {
+        const today = new Date().toISOString().split("T")[0]!;
+        return d >= today;
+      },
+      { message: "Cannot book appointments in the past" },
+    ),
   startTime: z
     .string()
     .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time HH:MM"),

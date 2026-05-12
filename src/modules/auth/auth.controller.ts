@@ -55,10 +55,7 @@ export async function registerHandler(
     await authService.changeProfileImage(result.user.id, req.file.buffer);
   }
 
-  res.status(201).json({
-    success: true,
-    data: result.message,
-  });
+  res.status(201).json({ success: true, data: result.message });
 }
 
 // ===== Verify Email =====
@@ -169,13 +166,40 @@ export async function changeProfileImageHandler(
   res.status(200).json({ success: true, data: result });
 }
 
+// ===== Change Password =====
+export async function changePasswordHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const { currentPassword, newPassword } = req.body as {
+    currentPassword: string;
+    newPassword: string;
+  };
+
+  const result = await authService.changePassword(
+    req.user.userId,
+    currentPassword,
+    newPassword,
+  );
+
+  res.status(200).json({ success: true, data: result });
+}
+
+// ===== Delete User (Admin) =====
+export async function deleteUserHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const result = await authService.deleteUser(req.params.id as string);
+  res.status(200).json({ success: true, data: result });
+}
+
 // ===== Google OAuth =====
 export const googleAuthHandler = passport.authenticate("google", {
   scope: ["profile", "email"],
   session: false,
 });
 
-// ===== Google OAuth Callback =====
 export async function googleCallbackHandler(
   req: Request,
   res: Response,
@@ -190,13 +214,4 @@ export async function googleCallbackHandler(
   } catch {
     res.redirect(`${env.CLIENT_URL}/auth/google/error`);
   }
-}
-
-// ===== Delete User (Admin) =====
-export async function deleteUserHandler(
-  req: Request,
-  res: Response,
-): Promise<void> {
-  const result = await authService.deleteUser(req.params.id as string);
-  res.status(200).json({ success: true, data: result });
 }

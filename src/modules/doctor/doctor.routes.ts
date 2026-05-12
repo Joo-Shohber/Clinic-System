@@ -21,6 +21,15 @@ router.get(
   validate(listDoctorsQuerySchema, "query"),
   asyncHandler(controller.listDoctors),
 );
+
+// [doctor] Must be BEFORE /:id to avoid "me" being treated as an id
+router.get(
+  "/me",
+  authenticate,
+  authorize(Role.DOCTOR),
+  asyncHandler(controller.getMyDoctorProfile),
+);
+
 router.get("/:id", asyncHandler(controller.getDoctorById));
 
 // [auth]

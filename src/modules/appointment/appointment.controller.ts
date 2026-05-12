@@ -16,10 +16,7 @@ export async function createAppointment(
 
   // لو فيه idempotency key، بنحفظ الـ response
   if (res.locals.idempotencyKey) {
-    await storeIdempotentResponse(
-      res.locals.idempotencyKey as string,
-      responseData,
-    );
+    await storeIdempotentResponse(res.locals.idempotencyKey, responseData);
   }
 
   res.status(201).json(responseData);

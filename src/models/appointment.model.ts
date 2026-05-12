@@ -8,8 +8,8 @@ export interface IAppointment extends Document {
   patientId: mongoose.Types.ObjectId;
   scheduleId: mongoose.Types.ObjectId;
   date: Date;
-  startTime: string;
-  endTime: string;
+  startTime: string; // "09:00"
+  endTime: string; // "09:30"
   status: AppointmentStatus;
   paymentStatus: PaymentStatus;
   paymentIntentId?: string;
@@ -18,6 +18,8 @@ export interface IAppointment extends Document {
   expiresAt: Date;
   confirmedAt?: Date;
   cancelledAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const appointmentSchema = new Schema<IAppointment>(
@@ -68,6 +70,8 @@ const appointmentSchema = new Schema<IAppointment>(
       type: String,
       maxlength: 500,
     },
+    // select: false — مش بيتبعت للـ patient تلقائياً
+    // الـ doctor/admin بيعملوا .select("+doctorNotes") صراحة
     doctorNotes: {
       type: String,
       maxlength: 1000,
@@ -96,14 +100,25 @@ const appointmentSchema = new Schema<IAppointment>(
   },
 );
 
+// منع حجز نفس الـ slot مرتين — الـ DB هو الـ last line of defense بعد الـ distributed lock
 appointmentSchema.index(
   { doctorId: 1, date: 1, startTime: 1 },
   { unique: true },
 );
 
+// للـ query بتاع "appointments بتاعتي" مع filter بالـ status
 appointmentSchema.index({ patientId: 1, status: 1 });
 
-appointmentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// TTL index — MongoDB بيمسح الـ document تلقائياً لما expiresAt يعدي
+// partial index — بيشتغل على pending فقط عشان ميمسحش confirmed/completed
+// ده backup للـ BullMQ expiry job — مش بديل عنه
+appointmentSchema.index(
+  { expiresAt: 1 },
+  {
+    expireAfterSeconds: 0,
+    partialFilterExpression: { status: AppointmentStatus.PENDING },
+  },
+);
 
 export const Appointment = mongoose.model<IAppointment>(
   "Appointment",

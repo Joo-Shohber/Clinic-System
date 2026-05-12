@@ -206,6 +206,50 @@ export async function deleteUser(targetUserId: string) {
   return { message: "User deleted successfully" };
 }
 
+// ===== Change Password =====
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) {
+  const user = await User.findById(userId).select("+password");
+  if (!user) throw new AppError("NOT_FOUND", 404, "User not found");
+
+  if (!user.password) {
+    throw new AppError(
+      "NO_PASSWORD",
+      400,
+      "This account uses Google sign-in. Use forget password to set a password.",
+    );
+  }
+
+  const isValid = await user.comparePassword(currentPassword);
+  if (!isValid) {
+    throw new AppError(
+      "INVALID_PASSWORD",
+      400,
+      "Current password is incorrect",
+    );
+  }
+
+  if (currentPassword === newPassword) {
+    throw new AppError(
+      "SAME_PASSWORD",
+      400,
+      "New password must be different from current password",
+    );
+  }
+
+  user.password = newPassword;
+  await user.save(); // pre-save hook بيعمل hash
+
+  // بنمسح كل الـ sessions — الـ user لازم يعمل login تاني
+  await revokeAllUserTokens(userId);
+
+  return { message: "Password changed successfully. Please login again." };
+}
+
 // ===== Google OAuth =====
 
 export async function googleLogin(user: JwtPayload) {

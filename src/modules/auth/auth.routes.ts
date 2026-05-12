@@ -14,6 +14,7 @@ import {
   ResendOtpDto,
   ForgetPasswordDto,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from "./auth.schema";
 
 const router = Router();
@@ -63,6 +64,13 @@ router.patch(
   authenticate,
   uploadImage("image"),
   asyncHandler(controller.changeProfileImageHandler),
+);
+
+router.patch(
+  "/change-password",
+  authenticate,
+  validate(ChangePasswordDto),
+  asyncHandler(controller.changePasswordHandler),
 );
 
 // ===== Session =====

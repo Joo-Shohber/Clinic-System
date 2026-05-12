@@ -13,6 +13,16 @@ import {
   VerifyDoctorInput,
 } from "./doctor.schema";
 
+// ===== Get My Profile (Doctor) =====
+
+export async function getMyDoctorProfile(userId: string) {
+  const doctor = await Doctor.findOne({ userId }).lean();
+  if (!doctor) {
+    throw new AppError("NOT_FOUND", 404, "Doctor profile not found");
+  }
+  return doctor;
+}
+
 // ===== Create =====
 
 export async function createDoctor(

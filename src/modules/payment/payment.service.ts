@@ -84,12 +84,13 @@ async function createPaymentKey(
     body: JSON.stringify({
       auth_token: authToken,
       amount_cents: amountCents,
-      expiration: 3600, // 1 hour
+      expiration: 3600,
       order_id: orderId,
       billing_data: billingData,
       currency: "EGP",
       integration_id: env.PAYMOB_INTEGRATION_ID,
       lock_order_when_paid: true,
+      redirect_url: `${env.CLIENT_URL}/payment/callback`,
     }),
   });
 
