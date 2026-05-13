@@ -50,7 +50,7 @@ const userSchema = new Schema<IUser>(
     },
     googleId: {
       type: String,
-      sparse: true, // unique index بس لو القيمة مش null
+      sparse: true,
     },
     profilePhoto: {
       type: Object,
@@ -66,7 +66,6 @@ const userSchema = new Schema<IUser>(
   },
 );
 
-// Hash الـ password قبل الـ save — بس لو اتغير
 userSchema.pre("save", async function () {
   if (!this.isModified("password") || !this.password) return;
   const env = getEnv();

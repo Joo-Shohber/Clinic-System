@@ -69,7 +69,6 @@ export async function generateRefreshToken(userId: string): Promise<string> {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions["expiresIn"],
   });
 
-  // بنحفظ hash بتاع الـ token مش الـ token نفسه — extra security
   const hash = crypto.createHash("sha256").update(token).digest("hex");
   const ttl = parseDurationToSeconds(env.JWT_REFRESH_EXPIRES_IN);
   await redis.setex(REDIS_KEYS.refreshToken(userId, jti), ttl, hash);
@@ -108,7 +107,6 @@ export async function rotateRefreshToken(
   const storedHash = await redis.get(REDIS_KEYS.refreshToken(userId, jti));
 
   if (!storedHash) {
-    // الـ jti مش موجود → token اتستخدم قبل كده → reuse attack
     await revokeAllUserTokens(userId);
     throw new AppError(
       "REFRESH_TOKEN_REUSE",
@@ -117,7 +115,6 @@ export async function rotateRefreshToken(
     );
   }
 
-  // تحقق إضافي — الـ hash بيطابق؟
   const incomingHash = crypto
     .createHash("sha256")
     .update(oldToken)
@@ -131,7 +128,6 @@ export async function rotateRefreshToken(
     );
   }
 
-  // امسح الـ old token وعمل جديد
   await redis.del(REDIS_KEYS.refreshToken(userId, jti));
 
   const user = await User.findById(userId);

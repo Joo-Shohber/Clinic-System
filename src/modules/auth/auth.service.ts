@@ -60,7 +60,13 @@ export async function verifyEmail(email: string, otp: string) {
   const refreshToken = await generateRefreshToken(user.id);
 
   return {
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePhoto: user.profilePhoto,
+    },
     tokens: { accessToken, refreshToken },
   };
 }
@@ -119,7 +125,6 @@ export async function login(dto: LoginDtoType) {
 
 export async function forgetPassword(email: string) {
   const user = await User.findOne({ email });
-  // بنرجع بدون error حتى لو الـ email مش موجود — security best practice
   if (!user) return;
 
   const otp = await createOTP(REDIS_KEYS.otpPasswordReset(email));
@@ -136,18 +141,17 @@ export async function resetPassword(
   otp: string,
   newPassword: string,
 ) {
-  // لازم نستخدم otpPasswordReset مش otpEmailVerify
   await verifyOTP(REDIS_KEYS.otpPasswordReset(email), otp);
 
   const user = await User.findOne({ email });
   if (!user) throw new AppError("NOT_FOUND", 404, "User not found");
 
   user.password = newPassword;
-  await user.save(); // pre-save hook بيعمل hash
+  await user.save();
 
   await revokeAllUserTokens(user.id);
 
-  return { message: "Password reset successful" };
+  return { message: "Password reset successful, Please Login" };
 }
 
 // ===== Refresh Tokens =====
@@ -162,15 +166,12 @@ export async function logout(refreshToken: string) {
   try {
     const decoded = jwt.decode(refreshToken) as {
       userId?: string;
-      jti?: string;
     } | null;
-    if (decoded?.userId && decoded?.jti) {
+    if (decoded?.userId) {
       const redis = getRedis();
-      await redis.del(REDIS_KEYS.refreshToken(decoded.userId, decoded.jti));
+      await redis.del(REDIS_KEYS.allRefreshTokens(decoded.userId));
     }
-  } catch {
-    // silent fail — الـ cookie بتتمسح على أي حال
-  }
+  } catch {}
 }
 
 // ===== Change Profile Image =====
@@ -242,9 +243,8 @@ export async function changePassword(
   }
 
   user.password = newPassword;
-  await user.save(); // pre-save hook بيعمل hash
+  await user.save();
 
-  // بنمسح كل الـ sessions — الـ user لازم يعمل login تاني
   await revokeAllUserTokens(userId);
 
   return { message: "Password changed successfully. Please login again." };
@@ -265,6 +265,7 @@ export async function googleLogin(user: IUser) {
       name: user.name,
       email: user.email,
       role: user.role,
+      profilePhoto: user.profilePhoto,
     },
     tokens: { accessToken, refreshToken },
   };
