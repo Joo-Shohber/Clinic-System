@@ -18,8 +18,6 @@ export interface IAppointment extends Document {
   expiresAt: Date;
   confirmedAt?: Date;
   cancelledAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const appointmentSchema = new Schema<IAppointment>(

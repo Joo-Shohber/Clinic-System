@@ -23,7 +23,7 @@ export async function getMyDoctorProfile(userId: string) {
   return doctor;
 }
 
-// ===== Create =====
+// ===== Create Doctor =====
 
 export async function createDoctor(
   userId: string,
@@ -37,7 +37,7 @@ export async function createDoctor(
   return Doctor.create({ userId, ...input });
 }
 
-// ===== List =====
+// ===== Get and List Doctors =====
 
 export async function listDoctors(query: ListDoctorsQuery) {
   const { search, specialization, minRating, maxFees, page, limit } = query;
@@ -62,11 +62,16 @@ export async function listDoctors(query: ListDoctorsQuery) {
 
   return {
     doctors,
-    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
   };
 }
 
-// ===== Get One =====
+// ===== Get Doctor by ID =====
 
 export async function getDoctorById(doctorId: string) {
   const cached = await cacheService.get<object>(
@@ -88,7 +93,7 @@ export async function getDoctorById(doctorId: string) {
   return result;
 }
 
-// ===== Update =====
+// ===== Update Doctor =====
 
 export async function updateDoctor(
   doctorId: string,
@@ -127,12 +132,10 @@ export async function verifyDoctor(
 // ===== Available Slots =====
 
 export async function getAvailableSlots(doctorId: string, date: string) {
-  // 1. Cache check
   const cacheKey = REDIS_KEYS.doctorSlots(doctorId, date);
   const cached = await cacheService.get<object[]>(cacheKey);
   if (cached) return cached;
 
-  // 2. Get schedule for that day
   const dayName = getDayName(date);
   const schedule = await Schedule.findOne({
     doctorId,
@@ -141,14 +144,12 @@ export async function getAvailableSlots(doctorId: string, date: string) {
   });
   if (!schedule) return [];
 
-  // 3. Generate all possible slots
   const allSlots = generateSlots(
     schedule.startTime,
     schedule.endTime,
     schedule.slotDuration,
   );
 
-  // 4. Get booked slots — pending و confirmed بياخدوا الـ slot
   const dateObj = new Date(date + "T00:00:00Z");
   const booked = await Appointment.find({
     doctorId,
@@ -156,11 +157,9 @@ export async function getAvailableSlots(doctorId: string, date: string) {
     status: { $in: [AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED] },
   }).select("startTime");
 
-  // 5. Filter out booked
   const bookedTimes = new Set(booked.map((a) => a.startTime));
   const available = allSlots.filter((s) => !bookedTimes.has(s.startTime));
 
-  // 6. Cache and return
   await cacheService.set(cacheKey, available);
   return available;
 }

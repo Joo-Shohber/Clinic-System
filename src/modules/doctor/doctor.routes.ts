@@ -22,7 +22,7 @@ router.get(
   asyncHandler(controller.listDoctors),
 );
 
-// [doctor] Must be BEFORE /:id to avoid "me" being treated as an id
+// [doctor]
 router.get(
   "/me",
   authenticate,
