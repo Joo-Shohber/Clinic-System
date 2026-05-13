@@ -9,7 +9,6 @@ import { CreateScheduleDto, UpdateScheduleDto } from "./schedule.schema";
 
 const router = Router();
 
-// كل الـ schedule routes تحتاج doctor role
 router.use(authenticate, authorize(Role.DOCTOR));
 
 router.post(

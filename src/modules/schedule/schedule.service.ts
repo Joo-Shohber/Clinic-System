@@ -7,7 +7,6 @@ import {
   UpdateScheduleDtoType,
 } from "./schedule.schema";
 
-// helper — بيتحقق إن الـ doctor profile موجود وبيرجع الـ doctorId
 async function getDoctorIdByUserId(userId: string): Promise<string> {
   const doctor = await Doctor.findOne({ userId });
   if (!doctor) {
@@ -16,8 +15,6 @@ async function getDoctorIdByUserId(userId: string): Promise<string> {
   return doctor._id.toString();
 }
 
-// بيمسح كل الـ cached slots بتاعة الدكتور ده
-// بنستخدمه لما الـ schedule يتعدل أو يتمسح
 async function invalidateDoctorSlotsCache(doctorId: string): Promise<void> {
   await cacheService.invalidatePattern(`doctor:slots:${doctorId}:*`);
 }
@@ -62,15 +59,12 @@ export async function updateSchedule(
   const schedule = await Schedule.findById(scheduleId);
   if (!schedule) throw new AppError("NOT_FOUND", 404, "Schedule not found");
 
-  // بيتأكد إن الـ doctor بيعدل على schedule بتاعه هو بس
   if (schedule.doctorId.toString() !== doctorId) {
     throw new AppError("FORBIDDEN", 403, "Not your schedule");
   }
 
   Object.assign(schedule, input);
   await schedule.save();
-
-  // لازم نمسح الـ cache عشان الـ slots اتغيرت
   await invalidateDoctorSlotsCache(doctorId);
 
   return schedule;

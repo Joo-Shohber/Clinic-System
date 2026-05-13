@@ -25,7 +25,6 @@ export const UpdateScheduleDto = BaseScheduleDto.partial().refine(
     if (data.startTime && data.endTime) {
       return data.startTime < data.endTime;
     }
-
     return true;
   },
   {
