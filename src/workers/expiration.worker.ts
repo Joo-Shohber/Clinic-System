@@ -23,12 +23,10 @@ export function startExpirationWorker() {
       const { appointmentId } = job.data;
 
       const appointment = await Appointment.findById(appointmentId);
-      if (!appointment) return; // already deleted by MongoDB TTL
+      if (!appointment) return;
 
-      // Idempotency — لو اتغير الـ status يبقى اتعالج قبل كده
       if (appointment.status !== AppointmentStatus.PENDING) return;
 
-      // Refund لو بالغريبة كان paid ولسه pending
       if (
         appointment.paymentStatus === PaymentStatus.PAID &&
         appointment.paymentIntentId

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { asyncHandler } from "../../utils/async-handler";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
+import { idempotency } from "../../middleware/idempotency";
 import { Role } from "../../types/enums";
 import * as controller from "./payment.controller";
 
@@ -12,6 +13,7 @@ router.post(
   "/create-session/:appointmentId",
   authenticate,
   authorize(Role.PATIENT),
+  idempotency(),
   asyncHandler(controller.createPaymentSession),
 );
 
@@ -24,6 +26,7 @@ router.post(
   "/refund/:appointmentId",
   authenticate,
   authorize(Role.ADMIN),
+  idempotency(),
   asyncHandler(controller.refundAppointment),
 );
 

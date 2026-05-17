@@ -33,14 +33,12 @@ export async function createAppointment(
 ) {
   const { doctorId, date, startTime, patientNotes } = input;
 
-  // 1. Check doctor exists, verified, active
   const doctor = await Doctor.findById(doctorId);
   if (!doctor) throw new AppError("NOT_FOUND", 404, "Doctor not found");
   if (!doctor.isVerified || !doctor.isActive) {
     throw new AppError("DOCTOR_UNAVAILABLE", 400, "Doctor is not available");
   }
 
-  // 2. Check patient doesn't already have appointment at same slot
   const dateObj = new Date(date + "T00:00:00Z");
   const duplicate = await Appointment.findOne({
     patientId,
@@ -57,7 +55,6 @@ export async function createAppointment(
     );
   }
 
-  // 3. Get schedule to find endTime and scheduleId
   const dayName = getDayName(date);
   const schedule = await Schedule.findOne({
     doctorId,
@@ -72,7 +69,6 @@ export async function createAppointment(
     );
   }
 
-  // 4. Validate startTime is a valid slot
   const allSlots = generateSlots(
     schedule.startTime,
     schedule.endTime,
@@ -83,14 +79,12 @@ export async function createAppointment(
     throw new AppError("INVALID_SLOT", 400, "Invalid time slot");
   }
 
-  // 5. Acquire distributed lock → check slot → create appointment
   const lockKey = REDIS_KEYS.slotLock(doctorId, date, startTime);
   const env = getEnv();
   const appointment = await lockService.withLock(
     lockKey,
     env.LOCK_TTL_MS,
     async () => {
-      // Double-check inside the lock — another request might have booked between steps
       const taken = await Appointment.findOne({
         doctorId,
         date: dateObj,
@@ -117,7 +111,7 @@ export async function createAppointment(
     },
   );
 
-  // 6. BullMQ delayed job — fires at expiresAt to expire if not paid
+  // BullMQ delayed job — fires at expiresAt to expire if not paid
   await getExpirationQueue().add(
     "expire-appointment",
     { appointmentId: appointment._id.toString() },
@@ -129,10 +123,8 @@ export async function createAppointment(
     },
   );
 
-  // 7. Invalidate slots cache
   await cacheService.del(REDIS_KEYS.doctorSlots(doctorId, date));
 
-  // 8. WebSocket notification
   wsEmit.appointmentCreated(patientId, {
     appointmentId: appointment._id.toString(),
     doctorId,

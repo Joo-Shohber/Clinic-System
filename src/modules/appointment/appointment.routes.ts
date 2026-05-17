@@ -16,7 +16,6 @@ import {
 const router = Router();
 
 // [patient] Book appointment
-// idempotency middleware يمنع double booking لو الـ request اتبعت مرتين
 router.post(
   "/",
   authenticate,

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as paymentService from "./payment.service";
+import { storeIdempotentResponse } from "../../middleware/idempotency";
 
 // [patient] Create payment session → returns iframe URL
 export async function createPaymentSession(
@@ -9,7 +10,17 @@ export async function createPaymentSession(
   const { appointmentId } = req.params as { appointmentId: string };
   const { iframeUrl, paymobOrderId } =
     await paymentService.createPaymentSession(appointmentId, req.user.userId);
-  res.status(200).json({ success: true, data: { iframeUrl, paymobOrderId } });
+
+  const responseData = { success: true, data: { iframeUrl, paymobOrderId } };
+
+  if (res.locals.idempotencyKey) {
+    await storeIdempotentResponse(
+      res.locals.idempotencyKey as string,
+      responseData,
+    );
+  }
+
+  res.status(200).json(responseData);
 }
 
 // [paymob] Webhook — POST callback من Paymob بعد الدفع
